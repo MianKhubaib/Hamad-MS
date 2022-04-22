@@ -13,7 +13,7 @@ import { User } from './user.model';
       },
     ]),
   ],
-  providers: [UserService],
+  providers: [UserService, UserRepository],
   controllers: [UserController],
 })
 export class UserModule {}
