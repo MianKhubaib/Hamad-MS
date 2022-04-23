@@ -4,6 +4,9 @@ import {
   AzureCosmosDbModule,
 } from '@nestjs/azure-database';
 import { UserModule } from './user/user.module';
+import { RequestModule } from './request/request.module';
+import { DeliveryModule } from './delivery/delivery.module';
+import { AdminModule } from './admin/admin.module';
 
 
 
@@ -17,6 +20,9 @@ import { UserModule } from './user/user.module';
       endpoint: process.env.AZURE_COSMOS_DB_ENDPOINT,
       key: process.env.AZURE_COSMOS_DB_KEY,
     }),
+    RequestModule,
+    DeliveryModule,
+    AdminModule,
     
   ],
 })
