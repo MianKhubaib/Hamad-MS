@@ -5,7 +5,11 @@ import {
   Get,
   Post,
   UnprocessableEntityException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
+import { ApiOperation } from '@nestjs/swagger';
+
 import { UserService } from './user.service';
 import { UserDTO } from './dto/user.dto';
 @Controller('user')
@@ -13,7 +17,10 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('/create')
-  async createCat(
+  @ApiOperation({ summary: 'Create User' })
+  @UsePipes(new ValidationPipe({ transform: true }))
+
+  async createUser(
     @Body()
     userData: UserDTO,
   ) {
@@ -30,3 +37,4 @@ export class UserController {
   //     return await this.userService.getAll();
   //   }
 }
+
