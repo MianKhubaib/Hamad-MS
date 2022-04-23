@@ -7,6 +7,7 @@ import { UserRepository } from './user.repository';
 import { User } from './user.model';
 @Module({
   imports: [
+    
     AzureCosmosDbModule.forFeature([
       {
         dto: User,

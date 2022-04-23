@@ -6,8 +6,9 @@ import { UserRepository } from './user.repository';
 export class UserService {
   constructor(@Inject(forwardRef(() => UserRepository)) private readonly userRepository: UserRepository) {}
 
-  async create(user: User): Promise<User> {
-    return await this.userRepository.create(user);
+  async create(user) {
+    // return await this.userRepository.create(user);
+    return
   }
   async getAll() {
     return await this.userRepository.findAll();
