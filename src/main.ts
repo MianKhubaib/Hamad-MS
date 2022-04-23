@@ -24,7 +24,7 @@ async function bootstrap() {
   const {httpAdapter} = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
   // app.useGlobalFilters(new HttpExceptionFilter());
-
+  
   const config = new DocumentBuilder()
     .setTitle('Hamad')
     .setDescription('Hamad API description')
