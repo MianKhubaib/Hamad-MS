@@ -2,9 +2,8 @@ import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { AzureCosmosDbModule } from '@nestjs/azure-database';
-import { UserDTO } from './user.dto';
-import { UserRepository } from './user.repository';
-import { User } from './user.model';
+import { UserRepository } from './repository/user.repository';
+import { User } from './models/user.model';
 @Module({
   imports: [
     

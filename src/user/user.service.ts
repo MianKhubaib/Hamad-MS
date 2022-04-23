@@ -1,12 +1,14 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { User } from './user.model';
-import { UserRepository } from './user.repository';
+import { UserRepository } from './repository/user.repository';
 
 @Injectable()
 export class UserService {
   constructor(@Inject(forwardRef(() => UserRepository)) private readonly userRepository: UserRepository) {}
 
   async create(user) {
+    if (!user) {
+      throw new Error('Invalid user');
+    }
     // return await this.userRepository.create(user);
     return
   }

@@ -1,7 +1,7 @@
 import { Container } from '@azure/cosmos';
 import { InjectModel } from '@nestjs/azure-database';
 import { Logger, Injectable } from '@nestjs/common';
-import { User } from './user.model';
+import { User } from '../models/user.model';
 
 @Injectable()
 export class UserRepository {
