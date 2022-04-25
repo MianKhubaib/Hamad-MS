@@ -6,7 +6,7 @@ import { User } from './entity/user.entity';
 export class UserService {
   constructor(
     @Inject(USER_REPOSITORY)
-    private userRepository: typeof User
+    private userRepository: typeof User,
   ) {}
 
   async create(data) {
