@@ -2,9 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Get,
   Post,
-  UnprocessableEntityException,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';

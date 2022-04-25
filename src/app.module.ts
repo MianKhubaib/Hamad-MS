@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import {
-  AzureCosmosDbModule,
-} from '@nestjs/azure-database';
 import { UserModule } from './user/user.module';
 import { RequestModule } from './request/request.module';
 import { DeliveryModule } from './delivery/delivery.module';
@@ -13,24 +10,19 @@ import { APP_INTERCEPTOR, RouterModule } from '@nestjs/core';
 import { NotificationModule } from './notification/notification.module';
 import { UtilsModule } from './utils/utils.module';
 import { AuthModule } from './auth/auth.module';
+import { DatabaseModule } from './database/database.module';
 
 
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-
+    ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
-    AzureCosmosDbModule.forRoot({
-      dbName: process.env.AZURE_COSMOS_DB_NAME,
-      endpoint: process.env.AZURE_COSMOS_DB_ENDPOINT,
-      key: process.env.AZURE_COSMOS_DB_KEY,
-    }),
     RequestModule,
     DeliveryModule,
     AdminModule,
     NotificationModule,
-
+    DatabaseModule,
     RouterModule.register([
       {
         path: 'v1',
@@ -69,6 +61,8 @@ import { AuthModule } from './auth/auth.module';
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
     },
+  
+    
   ],
 })
 export class AppModule { }

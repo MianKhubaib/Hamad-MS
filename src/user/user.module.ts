@@ -1,19 +1,11 @@
 import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
-import { AzureCosmosDbModule } from '@nestjs/azure-database';
-import { UserRepository } from './repository/user.repository';
-import { User } from './models/user.model';
+import { DatabaseModule } from 'src/database/database.module';
+import { userProviders } from './providers/user.providers';
 @Module({
-  imports: [
-    
-    AzureCosmosDbModule.forFeature([
-      {
-        dto: User,
-      },
-    ]),
-  ],
-  providers: [UserService, UserRepository],
+  imports: [DatabaseModule],
+  providers: [UserService, ...userProviders,],
   controllers: [UserController],
 })
 export class UserModule {}
