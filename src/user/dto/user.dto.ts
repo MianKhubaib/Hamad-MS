@@ -1,6 +1,13 @@
-import { IsEmail, IsNotEmpty, IsBoolean, IsNumber, MinLength, MaxLength, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsBoolean,
+  IsNumber,
+  MinLength,
+  MaxLength,
+  Matches,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
 
 export class UserDTO {
   @ApiProperty({ name: 'firstName' })
@@ -23,8 +30,10 @@ export class UserDTO {
     },
     example: [{ webAddress: 'string', webAddressComment: 'string' }],
   })
-  readonly webAddresses: [{
-    webAddress: string,
-    webAddressComment: boolean,
-  }];
+  readonly webAddresses: [
+    {
+      webAddress: string;
+      webAddressComment: boolean;
+    },
+  ];
 }

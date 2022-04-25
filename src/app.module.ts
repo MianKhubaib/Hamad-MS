@@ -12,8 +12,6 @@ import { UtilsModule } from './utils/utils.module';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 
-
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -35,12 +33,12 @@ import { DatabaseModule } from './database/database.module';
       {
         path: 'v1',
         module: AdminModule,
-      }
-      , {
+      },
+      {
         path: 'v1',
-        module: DeliveryModule
-      }
-      , {
+        module: DeliveryModule,
+      },
+      {
         path: 'v1',
         module: NotificationModule,
       },
@@ -49,10 +47,8 @@ import { DatabaseModule } from './database/database.module';
     UtilsModule,
 
     AuthModule,
-
   ],
   providers: [
-
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
@@ -61,8 +57,6 @@ import { DatabaseModule } from './database/database.module';
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
     },
-  
-    
   ],
 })
-export class AppModule { }
+export class AppModule {}

@@ -1,30 +1,57 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  CreatedAt,
+  UpdatedAt,
+  DeletedAt,
+  Unique,
+} from 'sequelize-typescript';
 
-@Table
+// could be considered as user roles.
+export enum Persona {
+  Requestor = 'requestor',
+  RequestManager = 'request-manager',
+  Collaborator = 'collaborator',
+  Admin = 'admin',
+}
+
+@Table({ tableName: 'user', timestamps: true })
 export class User extends Model<User> {
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-    })
-    name: string;
+  @PrimaryKey
+  @AutoIncrement
+  @Column
+  id: number;
 
-    @Column({
-        type: DataType.STRING,
-        unique: true,
-        allowNull: false,
-    })
-    email: string;
+  @Unique
+  @Column
+  email: string;
 
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-    })
-    password: string;
+  @Column
+  password: string;
 
-    @Column({
-        type: DataType.ENUM,
-        values: ['male', 'female'],
-        allowNull: false,
-    })
-    gender: string;
+  @Column
+  display_name: string;
+
+  @Unique
+  @Column
+  teams_emp_id: string;
+
+  @Column
+  avatar: string;
+
+  @Column({ type: DataType.ENUM(...Object.values(Persona)) })
+  persona: string;
+
+  @CreatedAt
+  creation_at: Date;
+
+  @UpdatedAt
+  updated_at: Date;
+
+  @DeletedAt
+  deletion_at: Date;
 }

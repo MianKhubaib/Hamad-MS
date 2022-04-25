@@ -18,7 +18,6 @@ export class UserController {
   @Post('/create')
   @ApiOperation({ summary: 'Create User' })
   @UsePipes(new ValidationPipe({ transform: true }))
-
   async createUser(
     @Body()
     userData: UserDTO,
@@ -28,7 +27,6 @@ export class UserController {
     } catch (e) {
       throw new BadRequestException(e.message);
     }
-  
   }
 
     @Get('/all')
@@ -36,4 +34,3 @@ export class UserController {
       return await this.userService.getAll();
     }
 }
-
