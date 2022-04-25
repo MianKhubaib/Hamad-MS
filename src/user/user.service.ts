@@ -19,4 +19,9 @@ export class UserService {
   async getAll() {
     return await this.userRepository.findAll();
   }
+  async updatePersona(id: number, persona: string) {
+    const user = await this.userRepository.findByPk(id);
+    user.persona = persona;
+    return await user.save();
+  }
 }

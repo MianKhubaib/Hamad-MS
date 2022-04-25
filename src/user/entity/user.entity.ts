@@ -29,10 +29,6 @@ export class User extends Model<User> {
   @Unique
   @Column
   email: string;
-
-  @Column
-  password: string;
-
   @Column
   display_name: string;
 
