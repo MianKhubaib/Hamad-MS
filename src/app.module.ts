@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
-import { RequestModule } from './request/request.module';
+import { BuiRequestModule } from './bui_request/bui_request.module';
 import { DeliveryModule } from './delivery/delivery.module';
 import { AdminModule } from './admin/admin.module';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
@@ -16,7 +16,7 @@ import { DatabaseModule } from './database/database.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
-    RequestModule,
+    BuiRequestModule,
     DeliveryModule,
     AdminModule,
     NotificationModule,
@@ -28,7 +28,7 @@ import { DatabaseModule } from './database/database.module';
       },
       {
         path: 'v1',
-        module: RequestModule,
+        module: BuiRequestModule,
       },
       {
         path: 'v1',
