@@ -13,7 +13,7 @@ import {
 
 // could be considered as user roles.
 export enum Persona {
-  Requestor = 'requestor',
+  Requester = 'requester',
   RequestManager = 'request-manager',
   Collaborator = 'collaborator',
   Admin = 'admin',
