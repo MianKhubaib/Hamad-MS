@@ -6,7 +6,7 @@ import { User } from './entity/user.entity';
 export class UserService {
   constructor(
     @Inject(USER_REPOSITORY)
-    private userRepository: typeof User
+    private userRepository: typeof User,
   ) {}
 
   async create(data) {
@@ -18,5 +18,10 @@ export class UserService {
   }
   async getAll() {
     return await this.userRepository.findAll();
+  }
+  async updatePersona(name: string, persona: string) {
+    const user = await this.userRepository.findOne({ where: { name } });
+    user.name = persona;
+    return await user.save();
   }
 }
