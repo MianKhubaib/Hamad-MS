@@ -12,11 +12,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class UserDTO {
   @ApiProperty({ name: 'firstName' })
   @IsNotEmpty()
-  firstName: string;
-
-  @ApiProperty({ name: 'lastName' })
-  @IsNotEmpty()
-  lastName: string;
+  display_name: string;
 
   @ApiProperty({ name: 'email' })
   @IsNotEmpty()

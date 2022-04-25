@@ -19,9 +19,9 @@ export class UserService {
   async getAll() {
     return await this.userRepository.findAll();
   }
-  async updatePersona(name: string, persona: string) {
-    const user = await this.userRepository.findOne({ where: { name } });
-    user.name = persona;
+  async updatePersona(id: number, persona: string) {
+    const user = await this.userRepository.findByPk(id);
+    user.persona = persona;
     return await user.save();
   }
 }
