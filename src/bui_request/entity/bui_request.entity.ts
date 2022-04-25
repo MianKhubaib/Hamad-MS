@@ -61,16 +61,27 @@ export class BuiRequest extends Model<BuiRequest> {
   comment: string;
 
   @ForeignKey(() => User)
+  @Column
   created_by: number;
 
   @Column({ type: DataType.ENUM(...Object.values(Status)) })
   status: string;
 
   @ForeignKey(() => User)
+  @Column
   manager_id: number;
 
   @Column({ type: DataType.ENUM(...Object.values(OverallState)) })
   overallState: string;
+
+  @Column
+  next_approver: number;
+
+  @Column
+  hygene_check_id: number;
+
+  @Column
+  delivery_check_id: number;
 
   @CreatedAt
   creation_at: Date;
