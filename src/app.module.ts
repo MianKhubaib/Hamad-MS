@@ -14,7 +14,6 @@ import { AzureTableStorageModule } from '@nestjs/azure-database';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-
     UserModule,
     AzureTableStorageModule.forRoot({
       connectionString:
