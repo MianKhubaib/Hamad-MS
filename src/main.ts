@@ -32,8 +32,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/apidocs', app, document);
 
-  const port = process.env.DB_PORT || process.env.PORT || 3001;
-  console.log('App running at', port);
+  const port = process.env.PORT || 3001;
   await app.listen(port);
+  console.log('App running at', port);
 }
 bootstrap();
