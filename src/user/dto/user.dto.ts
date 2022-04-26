@@ -18,6 +18,10 @@ export class UserDTO {
   @IsNotEmpty()
   email: string;
 
+  teams_emp_id: string;
+  avatar: string;
+  persona: string;
+
   @ApiPropertyOptional({
     name: 'webAddresses',
     type: 'array',
