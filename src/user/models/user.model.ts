@@ -27,25 +27,21 @@ import {
   CosmosDateTime,
   CosmosUniqueKey,
   Point,
+  EntityString,
+  EntityPartitionKey,
+  EntityRowKey,
+  EntityInt64,
 } from '@nestjs/azure-database';
 
-@CosmosPartitionKey('type')
+@EntityPartitionKey('type')
+@EntityRowKey('userId')
 export class User {
-  id?: string;
-
-  firstName: string;
-  name: string;
-  email: string;
-
-  lastNale: string;
-
-  location: Point;
-
-  type: string;
-
-  @CosmosUniqueKey() phoneNumber: string;
-
+  @EntityString() firstName?: string;
+  @EntityString() name: string;
+  @EntityString() email: string;
+  @EntityString() lastName?: string;
+  @EntityString() type?: string;
+  @CosmosUniqueKey() phoneNumber?: string;
   @CosmosDateTime() createdAt?: Date;
-
   @CosmosDateTime() updatedAt?: Date;
 }

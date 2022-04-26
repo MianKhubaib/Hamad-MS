@@ -1,20 +1,25 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { UserRepository } from './repository/user.repository';
-
+import {
+  AzureTableStorageResponse,
+  AzureTableStorageResultList,
+  InjectRepository,
+  Repository,
+} from '@nestjs/azure-database';
+import { User } from './models/user.model';
 @Injectable()
 export class UserService {
   constructor(
-    @Inject(forwardRef(() => UserRepository))
-    private readonly userRepository: UserRepository,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(user) {
+  async create(user: User): Promise<User> {
     if (!user) {
       throw new Error('Invalid user');
     }
     return await this.userRepository.create(user);
   }
-  async getAll() {
+  async getAll(): Promise<AzureTableStorageResultList<User>> {
     return await this.userRepository.findAll();
   }
 }

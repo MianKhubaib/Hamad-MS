@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDTO } from './dto/user.dto';
+import { User } from './models/user.model';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -18,11 +19,12 @@ export class UserController {
     userData: UserDTO,
   ) {
     try {
-      return await this.userService.create(userData);
+      const user = new User();
+      Object.assign(user, userData);
+      return await this.userService.create(user);
     } catch (e) {
       throw new BadRequestException(e.message);
     }
-  
   }
 
   //   @Get('/all')

@@ -6,13 +6,12 @@ import { UserRepository } from './repository/user.repository';
 import { User } from './models/user.model';
 @Module({
   imports: [
-    AzureTableStorageModule.forFeature([
-      {
-        dto: User,
-      },
-    ]),
+    AzureTableStorageModule.forFeature(User, {
+      table: 'user',
+      createTableIfNotExists: true,
+    }),
   ],
-  providers: [UserService, UserRepository],
+  providers: [UserService],
   controllers: [UserController],
 })
 export class UserModule {}
