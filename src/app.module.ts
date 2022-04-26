@@ -11,6 +11,7 @@ import { NotificationModule } from './notification/notification.module';
 import { UtilsModule } from './utils/utils.module';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
+import { Sequelize } from 'sequelize-typescript';
 
 @Module({
   imports: [

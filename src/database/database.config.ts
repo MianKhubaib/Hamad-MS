@@ -11,6 +11,13 @@ export const databaseConfig: IDatabaseConfig = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT,
+    autoLoadEntities: true,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
   },
   test: {
     username: process.env.DB_USER,
@@ -26,5 +33,11 @@ export const databaseConfig: IDatabaseConfig = {
     database: process.env.DB_NAME_PRODUCTION,
     host: process.env.DB_HOST,
     dialect: process.env.DB_DIALECT,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
   },
 };
