@@ -1,4 +1,47 @@
-import { Controller } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { RequestService } from './request.service';
+import { UpdateRequestDto } from './dto/update-request.dto';
+import { CreateRequestDto } from './dto/create-request.dto';
 
-@Controller('request')
-export class RequestController {}
+@ApiTags('Request Controller')
+@Controller('requests')
+export class RequestController {
+  constructor(private readonly requestService: RequestService) {}
+
+  @Get(':id')
+  findRequestById(@Param('id') id: string) {
+    return this.requestService.findById(id);
+  }
+
+  @Delete(':id')
+  findAndDeleteRequest(@Param('id') id: string) {
+    return this.requestService.deleteById(id);
+  }
+
+  @Patch(':id')
+  findAndUpdateRequest(
+    @Param('id') id: string,
+    @Body() request: UpdateRequestDto,
+  ) {
+    return this.requestService.update(id, request);
+  }
+
+  @Post()
+  createNewRequest(@Body() request: CreateRequestDto) {
+    return this.requestService.create(request);
+  }
+
+  @Get()
+  fetchAllRequests() {
+    return this.requestService.findAll();
+  }
+}
