@@ -20,6 +20,7 @@ export class UserService {
     return await this.userRepository.create(user);
   }
   async getAll(): Promise<AzureTableStorageResultList<User>> {
+    const users = await this.userRepository.select().where('RowKey == ?', '2');
     return await this.userRepository.findAll();
   }
 }
