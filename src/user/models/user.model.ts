@@ -33,7 +33,11 @@ import {
   EntityInt64,
 } from '@nestjs/azure-database';
 
-@EntityPartitionKey('type')
+const enum Persona {
+  'requester',
+  'manager',
+}
+@EntityPartitionKey('name')
 @EntityRowKey('userId')
 @EntityRowKey('email')
 export class User {

@@ -19,9 +19,8 @@ export class UserService {
     }
     return await this.userRepository.create({...user} );
   }
-  async getAll(){
-    // return await this.userRepository.findAll();
-    return await this.userRepository.find('ali@gmail.com', new User());
-
+  async getAll(): Promise<AzureTableStorageResultList<User>> {
+    const users = await this.userRepository.select().where('RowKey == ?', '2');
+    return await this.userRepository.findAll();
   }
 }
