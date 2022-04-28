@@ -27,8 +27,8 @@ export class UserController {
     }
   }
 
-  //   @Get('/all')
-  //   async getAll() {
-  //     return await this.userService.getAll();
-  //   }
+    @Get('/getAll')
+    async getAll() {
+      return await this.userService.getAll();
+    }
 }

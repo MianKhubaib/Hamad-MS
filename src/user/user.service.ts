@@ -17,9 +17,11 @@ export class UserService {
     if (!user) {
       throw new Error('Invalid user');
     }
-    return await this.userRepository.create(user);
+    return await this.userRepository.create({...user} );
   }
-  async getAll(): Promise<AzureTableStorageResultList<User>> {
-    return await this.userRepository.findAll();
+  async getAll(){
+    // return await this.userRepository.findAll();
+    return await this.userRepository.find('ali@gmail.com', new User());
+
   }
 }

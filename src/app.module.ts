@@ -10,18 +10,11 @@ import { APP_INTERCEPTOR, RouterModule } from '@nestjs/core';
 import { NotificationModule } from './notification/notification.module';
 import { UtilsModule } from './utils/utils.module';
 import { AuthModule } from './auth/auth.module';
-import { AzureTableStorageModule } from '@nestjs/azure-database';
+// import { AzureTableStorageModule } from '@nestjs/azure-database';
 @Module({
   imports: [
     ConfigModule.forRoot(),
     UserModule,
-    AzureTableStorageModule.forRoot({
-      accountName: 'mshamad',
-      sasKey:
-        'https://mshamad.table.core.windows.net/?sv=2020-08-04&ss=t&srt=sco&sp=rwdlacu&se=2022-04-27T00:59:20Z&st=2022-04-26T16:59:20Z&spr=https,http&sig=CGrnKI3%2FrSv8bD1QAPUsuJiGw8LrG9Rtd3ZDd3HaM4Y%3D',
-      connectionString:
-        'DefaultEndpointsProtocol=https;AccountName=mshamad;AccountKey=54zMSkRQEinxWNoSRLxbNzu/VpVJyNP5lVj6Br1wctlXZFroTtnhqdyu4XUro2E+Sz56IUZscX5g+AStmtGuMg==;EndpointSuffix=core.windows.net',
-    }),
     RequestModule,
     DeliveryModule,
     AdminModule,

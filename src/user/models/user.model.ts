@@ -35,10 +35,10 @@ import {
 
 @EntityPartitionKey('type')
 @EntityRowKey('userId')
+@EntityRowKey('email')
 export class User {
   @EntityString() firstName?: string;
   @EntityString() name: string;
-  @EntityString() email: string;
   @EntityString() lastName?: string;
   @EntityString() type?: string;
   @CosmosUniqueKey() phoneNumber?: string;
