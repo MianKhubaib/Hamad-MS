@@ -1,27 +1,3 @@
-// import {
-//   EntityInt32,
-//   EntityPartitionKey,
-//   EntityRowKey,
-//   EntityString,
-// } from '@nestjs/azure-database';
-
-// @EntityPartitionKey('UserID')
-// @EntityRowKey('UserName')
-// export class User {
-//   @EntityString() name: string;
-//   @EntityString() email: string;
-// }
-
-// import { CosmosPartitionKey, CosmosDateTime, Point } from '@nestjs/azure-database';
-
-// @CosmosPartitionKey('type')
-// export class User {
-//   id?: string;
-//   type: string;
-//   @CosmosDateTime() createdAt: Date;
-//   location: Point;
-// }
-
 import {
   CosmosPartitionKey,
   CosmosDateTime,
@@ -31,21 +7,19 @@ import {
   EntityPartitionKey,
   EntityRowKey,
   EntityInt64,
+  EntityGuid,
 } from '@nestjs/azure-database';
 
-const enum Persona {
-  'requester',
-  'manager',
-}
-@EntityPartitionKey('name')
+import { v4 as uuid } from 'uuid';
+
+@EntityPartitionKey('persona')
 @EntityRowKey('userId')
-@EntityRowKey('email')
 export class User {
-  @EntityString() firstName?: string;
   @EntityString() name: string;
+  @EntityString() email: string;
+  @EntityString() firstName?: string;
+  // @EntityString() userId: string;
   @EntityString() lastName?: string;
   @EntityString() type?: string;
-  @CosmosUniqueKey() phoneNumber?: string;
-  @CosmosDateTime() createdAt?: Date;
-  @CosmosDateTime() updatedAt?: Date;
+  @EntityString() persona: string;
 }

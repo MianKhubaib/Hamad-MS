@@ -2,7 +2,10 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  NotFoundException,
+  Param,
   Post,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -14,7 +17,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('/create')
-  async createCat(
+  async createUser(
     @Body()
     userData: UserDTO,
   ) {
@@ -27,8 +30,24 @@ export class UserController {
     }
   }
 
-    @Get('/getAll')
-    async getAll() {
-      return await this.userService.getAll();
+  @Get('/getAll')
+  async getAll() {
+    return await this.userService.getAll();
+  }
+
+  @Get(':id')
+  async getByPK(@Param('id') id) {
+    console.log(id);
+    try {
+      return await this.userService.getByRK(id, new User());
+    } catch (error) {
+      // Entity not found
+      throw new NotFoundException(error);
     }
+  }
+
+  @Delete('/delete/:id')
+  async deleteByPK(@Param('id') id) {
+    return await this.userService.deleteByRK(id, new User());
+  }
 }
