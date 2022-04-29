@@ -35,11 +35,22 @@ export class UserController {
     return await this.userService.getAll();
   }
 
-  @Get(':id')
+  @Get('getByRK/:id')
   async getByPK(@Param('id') id) {
     console.log(id);
     try {
       return await this.userService.getByRK(id, new User());
+    } catch (error) {
+      // Entity not found
+      throw new NotFoundException(error);
+    }
+  }
+
+  @Get('getByEmail/:email')
+  async getByEmail(@Param('email') email) {
+    console.log(email);
+    try {
+      return await this.userService.getByemail(email, new User());
     } catch (error) {
       // Entity not found
       throw new NotFoundException(error);
