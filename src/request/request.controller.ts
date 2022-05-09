@@ -8,11 +8,14 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { RequestService } from './request.service';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { CreateRequestDto } from './dto/create-request.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Request Controller')
 @Controller('requests')
@@ -38,8 +41,12 @@ export class RequestController {
   }
 
   @Post()
-  createNewRequest(@Body() request: CreateRequestDto) {
-    return this.requestService.create(request);
+  @UseInterceptors(FilesInterceptor('attachments'))
+  createNewRequest(
+    @UploadedFiles() attachments: Array<Express.Multer.File>,
+    @Body() request: CreateRequestDto,
+  ) {
+    return this.requestService.create(request, attachments);
   }
 
   @Get()

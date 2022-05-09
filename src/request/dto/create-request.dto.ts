@@ -1,14 +1,30 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  ArrayMinSize,
-  IsArray,
-  IsBoolean,
-  IsDateString,
-  IsNotEmpty,
-  IsString,
-} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+export class Approver {
+  @ApiProperty({ description: 'user id' })
+  @IsNotEmpty()
+  @IsString()
+  id: string;
+
+  @ApiProperty({ description: 'user name' })
+  @IsString()
+  name: string;
+}
 
 export class CreateRequestDto {
+
+  @ApiProperty({ description: 'request submitting user id' })
+  @IsString()
+  @IsNotEmpty()
+  submited_by_userId: string;
+
+  @ApiProperty({ description: 'request submitting user name' })
+  @IsString()
+  @IsNotEmpty()
+  submited_by_name: string;
+
   @ApiProperty({ description: 'request title' })
   @IsString()
   @IsNotEmpty()
@@ -27,12 +43,12 @@ export class CreateRequestDto {
   @ApiProperty({ description: 'request intended audiance' })
   @IsString()
   @IsNotEmpty()
-  intendedAudiance: string;
+  intended_audiance: string;
 
   @ApiProperty({ description: 'request required by' })
   @IsNotEmpty()
   @IsDateString()
-  requiredBy: Date;
+  required_by: Date;
 
   @ApiProperty({ description: 'request frequency' })
   @IsNotEmpty()
@@ -41,12 +57,14 @@ export class CreateRequestDto {
 
   @ApiProperty({ description: 'is request research based?' })
   @IsNotEmpty()
+  @Type(() => Boolean)
   @IsBoolean()
-  isResearchBased: boolean;
+  is_research_based: boolean;
 
   @ApiProperty({ description: 'request approvers list' })
   @IsNotEmpty()
-  @IsArray()
-  @ArrayMinSize(1)
-  approvers: string[];
+  @IsString()
+  @Transform(({ value }) => JSON.parse(value))
+  @Type(() => Approver)
+  approvers: Approver[];
 }
