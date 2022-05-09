@@ -3,6 +3,7 @@ import { PaginationParams } from './../dto/pagination-params.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { Request, Status, ApprovalStatus } from './model/request.model';
+import { BlobServiceClient, BlockBlobClient } from '@azure/storage-blob';
 import { Injectable } from '@nestjs/common';
 import {
   AzureTableContinuationToken,
@@ -20,6 +21,27 @@ export class RequestService {
   ) {}
 
   lastRequestId = 1;
+  azureConnection = 'YourConnection';
+  containerName = 'hamad-ms';
+  sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  getBlobClient(imageName: string): BlockBlobClient {
+    const blobClientService = BlobServiceClient.fromConnectionString(
+      process.env.AZURE_STORAGE_CONNECTION_STRING,
+    );
+    const containerClient = blobClientService.getContainerClient(
+      this.containerName,
+    );
+    const blobClient = containerClient.getBlockBlobClient(imageName);
+    return blobClient;
+  }
+
+  async upload(file: Express.Multer.File) {
+    const blobClient = this.getBlobClient(file.originalname);
+    await blobClient.uploadData(file.buffer);
+  }
 
   generateNewRequestId() {
     return `Req-${++this.lastRequestId}`;
@@ -29,18 +51,42 @@ export class RequestService {
     input: CreateRequestDto,
     attachments: Array<Express.Multer.File>,
   ) {
-
     // upload the attachments to storage blob
     // try to upload the attachments to azure blob storage
     // store following properties in db: filename, size, type, url
     // Do upload file one by one or in bulk
-    const uploadedAttachments = attachments.map((item) => ({
-      name: item.originalname,
-      type: item.mimetype,
-      size: item.size,
-      url: 'uploaded-url',
-    }));
 
+    // const uploadedAttachments = async () =>
+    //   Promise.all(
+    //     attachments.map(async (item) => {
+    //       const blobClient = this.getBlobClient(
+    //         Date.now() + '_' + item.originalname,
+    //       );
+    //       await blobClient.uploadData(item.buffer);
+    //       console.log(blobClient.url);
+    //       return {
+    //         name: item.originalname,
+    //         type: item.mimetype,
+    //         size: item.size,
+    //         url: blobClient.url,
+    //       };
+    //     }),
+    //   );
+    const uploadedAttachments = [];
+    for (let item of attachments) {
+      const blobClient = this.getBlobClient(
+        Date.now() + '_' + item.originalname,
+      );
+      await blobClient.uploadData(item.buffer);
+      await blobClient.setHTTPHeaders({ blobContentType: item.mimetype });
+      console.log(blobClient.url);
+      uploadedAttachments.push({
+        name: item.originalname,
+        type: item.mimetype,
+        size: item.size,
+        url: blobClient.url,
+      });
+    }
     const request = Object.assign(new Request(), input);
 
     // set the default values..
@@ -65,7 +111,8 @@ export class RequestService {
     }
 
     request.attachments = JSON.stringify(uploadedAttachments);
-
+    console.log(uploadedAttachments);
+    console.log(request);
     return this.requestRepository.create(request);
   }
 
