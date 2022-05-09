@@ -1,3 +1,4 @@
+import { PaginationParams } from './../dto/pagination-params.dto';
 import {
   Body,
   Controller,
@@ -6,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { RequestService } from './request.service';
@@ -41,7 +43,9 @@ export class RequestController {
   }
 
   @Get()
-  fetchAllRequests() {
-    return this.requestService.findAll();
+  fetchAllRequests(
+    @Query() pagination: PaginationParams
+  ) {
+    return this.requestService.findAll(pagination);
   }
 }

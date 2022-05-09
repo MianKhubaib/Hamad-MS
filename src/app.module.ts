@@ -11,6 +11,7 @@ import { NotificationModule } from './notification/notification.module';
 import { UtilsModule } from './utils/utils.module';
 import { AuthModule } from './auth/auth.module';
 // import { AzureTableStorageModule } from '@nestjs/azure-database';
+import { SharedModule } from './shared/shared.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
