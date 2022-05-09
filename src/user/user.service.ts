@@ -23,7 +23,7 @@ export class UserService {
   ) {}
 
   async create(userData: UserDTO): Promise<User> {
-    try{
+    try {
       const existingUser = await this.userRepository.find(
         userData.employee_id,
         new User(),
@@ -31,9 +31,7 @@ export class UserService {
       if (existingUser) {
         throw new Error('User already exists');
       }
-    }
-    catch (error) {
-    }
+    } catch (error) {}
 
     const user = new User();
     Object.assign(user, userData);

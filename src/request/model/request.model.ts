@@ -54,7 +54,7 @@ export class Request {
   overall_status: string; // Pending/underReview, Approved, Rejected, Request Withdrawn
 
   @EntityString()
-  state: string; // Pending Specification, InDevelopment, In Qa, User Acceptance, Waiting for others, Completed
+  status: string; // Pending Specification, InDevelopment, In Qa, User Acceptance, Waiting for others, Completed
 
   // json stringify main save karain gy
   @EntityString()
