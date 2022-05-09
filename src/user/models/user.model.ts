@@ -1,25 +1,15 @@
 import {
-  CosmosPartitionKey,
-  CosmosDateTime,
-  CosmosUniqueKey,
-  Point,
   EntityString,
   EntityPartitionKey,
   EntityRowKey,
-  EntityInt64,
-  EntityGuid,
 } from '@nestjs/azure-database';
 
-import { v4 as uuid } from 'uuid';
 
-@EntityPartitionKey('persona')
-@EntityRowKey('userId')
+@EntityPartitionKey('user')
+@EntityRowKey('employee_id')
 export class User {
-  @EntityString() name: string;
+  @EntityString() display_name: string;
   @EntityString() email: string;
-  @EntityString() firstName?: string;
-  // @EntityString() userId: string;
-  @EntityString() lastName?: string;
-  @EntityString() type?: string;
+  @EntityString() avatar: string;
   @EntityString() persona: string;
 }

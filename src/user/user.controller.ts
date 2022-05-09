@@ -6,36 +6,49 @@ import {
   Get,
   NotFoundException,
   Param,
+  Patch,
   Post,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserDTO } from './dto/user.dto';
+import { UpdateUserDTO, UserDTO } from './dto/user.dto';
 import { User } from './models/user.model';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('/create')
+  @Post('/')
   async createUser(
     @Body()
     userData: UserDTO,
   ) {
     try {
-      const user = new User();
-      Object.assign(user, userData);
-      return await this.userService.create(user);
+    
+      return await this.userService.create(userData);
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+  
+  @Get('/')
+  async getAll() {
+    return await this.userService.getAll();
+  }
+
+  @Patch('/:id')
+  async updateUser(@Param('id') id: string,
+    @Body()
+    userData: UpdateUserDTO,
+  ) {
+    try {
+    
+      return await this.userService.update(id, userData);
     } catch (e) {
       throw new BadRequestException(e.message);
     }
   }
 
-  @Get('/getAll')
-  async getAll() {
-    return await this.userService.getAll();
-  }
-
-  @Get('getByRK/:id')
+  @Get('/:id')
   async getByPK(@Param('id') id) {
     console.log(id);
     try {
@@ -57,7 +70,7 @@ export class UserController {
     }
   }
 
-  @Delete('/delete/:id')
+  @Delete('/:id')
   async deleteByPK(@Param('id') id) {
     return await this.userService.deleteByRK(id, new User());
   }

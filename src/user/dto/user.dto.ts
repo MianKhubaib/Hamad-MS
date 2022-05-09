@@ -1,47 +1,43 @@
 import {
   IsEmail,
   IsNotEmpty,
-  IsBoolean,
-  IsNumber,
-  MinLength,
-  MaxLength,
-  Matches,
   IsEnum,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
+
 enum Persona {
-  requester = 'requester',
-  requestManager = 'request-manager',
+  requestManager = 'request_manager',
   collaborator = 'collaborator',
 }
 
 export class UserDTO {
+  @ApiProperty({ name: 'employee_id' })
+  @IsNotEmpty()
+  employee_id: string;
+
   @ApiProperty({ name: 'name' })
   @IsNotEmpty()
-  name: string;
+  display_name: string;
 
   @ApiProperty({ name: 'email' })
   @IsNotEmpty()
+  @IsEmail()
   email: string;
 
+  @ApiProperty({ name: 'avatar' })
+  avatar: string;
+
+  @ApiProperty({ name: 'persona' })
   @IsEnum(Persona)
   @IsNotEmpty()
   persona: string;
-  RowKey: string;
-  PartitionKey: string;
-
-  @ApiPropertyOptional({
-    name: 'webAddresses',
-    type: 'array',
-    items: {
-      type: 'object',
-    },
-    example: [{ webAddress: 'string', webAddressComment: 'string' }],
-  })
-  readonly webAddresses: [
-    {
-      webAddress: string;
-      webAddressComment: boolean;
-    },
-  ];
+ 
+}
+export class UpdateUserDTO {
+  
+  @ApiProperty({ name: 'persona' })
+  @IsEnum(Persona)
+  @IsNotEmpty()
+  persona: string;
+ 
 }

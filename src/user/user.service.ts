@@ -14,6 +14,7 @@ import { User } from './models/user.model';
 import { v4 as uuid } from 'uuid';
 
 import { TableQuery } from 'azure-storage';
+import { UpdateUserDTO, UserDTO } from './dto/user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -21,11 +22,13 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(user: User): Promise<User> {
-    if (!user) {
-      throw new Error('Invalid user');
+  async create(userData: UserDTO): Promise<User> {
+    const existingUser = await this.userRepository.find(userData.employee_id, new User());
+    if(existingUser){
+      throw new Error('User already exists');
     }
-    user['PartitionKey'] = user.persona;
+    const user = new User();
+    Object.assign(user, userData);
     return await this.userRepository.create(user, uuid());
   }
   async getAll() {
@@ -57,5 +60,9 @@ export class UserService {
     // );
     // console.log(user1['data'['entries']]);
     // return await user1['data'];
+  }
+  async update(id: string, input: UpdateUserDTO) {
+    const updatedRequest = Object.assign(new User(), input);
+    return this.userRepository.update(id, updatedRequest);
   }
 }
