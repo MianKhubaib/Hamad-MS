@@ -23,13 +23,19 @@ export class UserService {
   ) {}
 
   async create(userData: UserDTO): Promise<User> {
-    const existingUser = await this.userRepository.find(userData.employee_id, new User());
-    if(existingUser){
-      throw new Error('User already exists');
-    }
+    try {
+      const existingUser = await this.userRepository.find(
+        userData.employee_id,
+        new User(),
+      );
+      if (existingUser) {
+        throw new Error('User already exists');
+      }
+    } catch (error) {}
+
     const user = new User();
     Object.assign(user, userData);
-    return await this.userRepository.create(user, uuid());
+    return await this.userRepository.create(user, userData.employee_id);
   }
   async getAll() {
     return await this.userRepository.findAll();
@@ -37,8 +43,8 @@ export class UserService {
 
   async getByRK(RK: string, user: User) {
     const query = new TableQuery();
-    //  return await this.userRepository.find(RK, user);
-    return await this.userRepository.findAll(query.where(`RowKey == '${RK}'`));
+    return await this.userRepository.find(RK, user);
+    //return await this.userRepository.findAll(query.where(`RowKey == '${RK}'`));
     // if (users['data']['entries'].length > 0) {
     //   return users['data']['entries'][0];
     // }
