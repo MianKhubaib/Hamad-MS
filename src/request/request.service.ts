@@ -1,3 +1,4 @@
+import { ViewRequestDto } from './dto/view-request.dot';
 import { HelperService } from './../shared/helper.service';
 import { PaginationParams } from './../dto/pagination-params.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
@@ -11,6 +12,7 @@ import {
   Repository,
 } from '@nestjs/azure-database';
 import { TableQuery } from 'azure-storage';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class RequestService {
@@ -138,15 +140,31 @@ export class RequestService {
   }
 
   async findById(id: string) {
-    const query = new TableQuery();
+    const result = await this.requestRepository.find(id, new Request());
+    // defining approvers property - this will not effect the db record it is just for out-dto
+    const approvers = [];
+    for (let i = 0; i < 4; i++) {
+      const approver = String(result[`approver_${i}`]);
 
-    // return this.requestRepository.findAll(
-    //   query.where("RowKey == '67ba2e65-9e08-4f41-89d9-3edd6fb053a8'"),
-    // );
-    const request = new Request();
-    // request['PartitionKey'] = '123';
+      // leave that column if column value start with same column name
+      if (approver.startsWith('approver')) continue;
 
-    return this.requestRepository.find(id, request);
+      const approverDetails = result[`approver_${i}_details`] as string;
+      const parsedDetails = this.helperService.jsonParse(
+        approverDetails.startsWith('approver') ? '{}' : approverDetails,
+      );
+
+      approvers.push({
+        id: approver,
+        name: parsedDetails.error ? parsedDetails.error : parsedDetails?.name,
+        approval_status: result[`approver_${i}_status`],
+        approved_at: result[`approver_${i}_date`],
+      });
+    }
+    result['approvers'] = approvers;
+    return plainToClass(ViewRequestDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async update(id: string, input: UpdateRequestDto) {

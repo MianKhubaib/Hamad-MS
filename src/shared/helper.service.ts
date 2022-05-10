@@ -15,7 +15,13 @@ export class HelperService {
   }
 
   jsonParse(jsondata: string): any {
-    return JSON.parse(jsondata);
+    try {
+      return JSON.parse(jsondata);
+    } catch {
+      return {
+        error: `unable to parse json data: ${jsondata}`,
+      };
+    }
   }
 
   stringifyAndEncodeBase64(data: any) {
