@@ -110,6 +110,13 @@ export class RequestService {
 
     // iterate on approvers array and store each record to seperate field
     for (let i = 0; i < input.approvers.length; i++) {
+
+      // set current approver as the first approver in list
+      if (i === 0) {
+        request['current_approverId'] = input.approvers[i].id;
+        request['current_approver_name'] = input.approvers[i].name;
+      }
+
       request[`approver_${i}`] = input.approvers[i].id;
       request[`approver_${i}_details`] = JSON.stringify(input.approvers[i]);
       request[`approver_${i}_status`] = ApprovalStatus.Pending;
