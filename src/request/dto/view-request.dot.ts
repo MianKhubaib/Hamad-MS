@@ -38,6 +38,10 @@ export class Comment {
 }
 
 export class ViewRequestDto {
+  @ApiProperty({ description: 'request id' })
+  @Expose({ name: 'RowKey' })
+  id: string;
+
   @ApiProperty({ description: 'request title' })
   @Expose()
   title: string;
