@@ -214,29 +214,25 @@ export class RequestService {
 
   async withDrawRequest(id: string) {
     try {
-      console.log(id)
       const result = await this.requestRepository.find(id, new RequestEntity());
-      console.log('result: ', result);
 
-      // if (result.approval_status === ApprovalStatus.With_Drawn)
-      //   throw new UnprocessableEntityException(
-      //     `Request already in 'with-drawn' state`,
-      //   );
+      // throw error if request already in with-drawn state
+      if (result.approval_status === ApprovalStatus.With_Drawn)
+        throw new UnprocessableEntityException(
+          `Request already in '${ApprovalStatus.With_Drawn}' state`,
+        );
 
-      const request = this.formatRequest(result);
+      // explicitely set dates to null if date is not already set
+      const formatedRequest = this.formatRequest(result);
 
-      // one by one...
-      request.approval_status = ApprovalStatus.With_Drawn;
+      formatedRequest.approval_status = ApprovalStatus.With_Drawn;
 
-      // console.log('after update: ', result);
-      const data = new RequestEntity();
+      const updatedRequest = new RequestEntity();
       // Disclaimer: Assign only the properties you are expecting!
-      Object.assign(data, {...request});
-      const temp = await this.requestRepository.update(id, data);
+      Object.assign(updatedRequest, formatedRequest);
+      await this.requestRepository.update(id, updatedRequest);
 
-      console.log('temp: ', temp);
-
-      return { result, message: 'request withdrawn success' };
+      return { request: updatedRequest, message: 'request withdrawn success' };
     } catch (error) {
       console.error(`error occured in method: '${this.withDrawRequest.name}'`);
       throw error;
