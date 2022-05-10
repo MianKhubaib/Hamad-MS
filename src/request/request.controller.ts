@@ -40,6 +40,11 @@ export class RequestController {
     return this.requestService.update(id, request);
   }
 
+  @Get(':id/withdraw')
+  withdrawRequest(@Param('id') id: string) {
+    return this.requestService.withDrawRequest(id);
+  }
+
   @Post()
   @UseInterceptors(FilesInterceptor('attachments'))
   createNewRequest(
@@ -50,9 +55,7 @@ export class RequestController {
   }
 
   @Get()
-  fetchAllRequests(
-    @Query() pagination: PaginationParams
-  ) {
+  fetchAllRequests(@Query() pagination: PaginationParams) {
     return this.requestService.findAll(pagination);
   }
 }

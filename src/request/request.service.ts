@@ -5,7 +5,12 @@ import { UpdateRequestDto } from './dto/update-request.dto';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { Request, Status, ApprovalStatus } from './model/request.model';
 import { BlobServiceClient, BlockBlobClient } from '@azure/storage-blob';
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  HttpException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import {
   AzureTableContinuationToken,
   InjectRepository,
@@ -140,31 +145,98 @@ export class RequestService {
   }
 
   async findById(id: string) {
-    const result = await this.requestRepository.find(id, new Request());
-    // defining approvers property - this will not effect the db record it is just for out-dto
-    const approvers = [];
-    for (let i = 0; i < 4; i++) {
-      const approver = String(result[`approver_${i}`]);
+    try {
+      const result = await this.requestRepository.find(id, new Request());
+      // defining approvers property - this will not effect the db record it is just for out-dto
+      const approvers = [];
+      for (let i = 0; i < 4; i++) {
+        const approver = String(result[`approver_${i}`]);
 
-      // leave that column if column value start with same column name
-      if (approver.startsWith('approver')) continue;
+        // leave that column if column value start with same column name
+        if (approver.startsWith('approver')) continue;
 
-      const approverDetails = result[`approver_${i}_details`] as string;
-      const parsedDetails = this.helperService.jsonParse(
-        approverDetails.startsWith('approver') ? '{}' : approverDetails,
-      );
+        const approverDetails = result[`approver_${i}_details`] as string;
+        const parsedDetails = this.helperService.jsonParse(
+          approverDetails.startsWith('approver') ? '{}' : approverDetails,
+        );
 
-      approvers.push({
-        id: approver,
-        name: parsedDetails.error ? parsedDetails.error : parsedDetails?.name,
-        approval_status: result[`approver_${i}_status`],
-        approved_at: result[`approver_${i}_date`],
+        approvers.push({
+          id: approver,
+          name: parsedDetails.error ? parsedDetails.error : parsedDetails?.name,
+          approval_status: result[`approver_${i}_status`],
+          approved_at: result[`approver_${i}_date`],
+        });
+      }
+      result['approvers'] = approvers;
+      return plainToClass(ViewRequestDto, result, {
+        excludeExtraneousValues: true,
       });
+    } catch (error) {
+      console.error(`error occured in method: '${this.findById.name}'`);
+      throw new NotFoundException(error);
     }
-    result['approvers'] = approvers;
-    return plainToClass(ViewRequestDto, result, {
-      excludeExtraneousValues: true,
-    });
+  }
+
+  formatRequest(request) {
+    // expliciting setting dates to null - otherwise causing error
+    request.assignments_bui_expectedDate = request.assignments_bui_expectedDate
+      ? request.assignments_bui_expectedDate
+      : null;
+
+    request.delivery_next_demo = request.delivery_next_demo
+      ? request.delivery_next_demo
+      : null;
+
+    request.approver_0_date = request.approver_0_date
+      ? request.approver_0_date
+      : null;
+
+    request.approver_1_date = request.approver_1_date
+      ? request.approver_1_date
+      : null;
+
+    request.approver_2_date = request.approver_2_date
+      ? request.approver_2_date
+      : null;
+
+    request.approver_3_date = request.approver_3_date
+      ? request.approver_3_date
+      : null;
+
+    request.requested_time = request.requested_time
+      ? request.requested_time
+      : null;
+
+    request.required_by = request.required_by ? request.required_by : null;
+    return request;
+  }
+
+  async withDrawRequest(id: string) {
+    try {
+      const result = await this.requestRepository.find(id, new Request());
+      console.log('result: ', result);
+
+      // if (result.approval_status === ApprovalStatus.With_Drawn)
+      //   throw new UnprocessableEntityException(
+      //     `Request already in 'with-drawn' state`,
+      //   );
+
+      const request = this.formatRequest(result);
+
+      // one by one...
+      request.approval_status = ApprovalStatus.With_Drawn;
+
+      console.log('after update: ', request);
+
+      const temp = await this.requestRepository.update(id, request);
+
+      console.log('temp: ', temp);
+
+      return { result, message: 'request withdrawn success' };
+    } catch (error) {
+      console.error(`error occured in method: '${this.withDrawRequest.name}'`);
+      throw error;
+    }
   }
 
   async update(id: string, input: UpdateRequestDto) {
