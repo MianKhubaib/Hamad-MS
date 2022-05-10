@@ -24,7 +24,7 @@ export enum ApprovalStatus {
 
 @EntityPartitionKey('request')
 @EntityRowKey('biu_request_id')
-export class Request {
+export class RequestEntity {
   @EntityString()
   submited_by_name: string;
 

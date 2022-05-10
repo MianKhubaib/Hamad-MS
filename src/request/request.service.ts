@@ -3,13 +3,14 @@ import { HelperService } from './../shared/helper.service';
 import { PaginationParams } from './../dto/pagination-params.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { CreateRequestDto } from './dto/create-request.dto';
-import { Request, Status, ApprovalStatus } from './model/request.model';
+import { RequestEntity, Status, ApprovalStatus } from './model/request.model';
 import { BlobServiceClient, BlockBlobClient } from '@azure/storage-blob';
 import {
   Injectable,
   NotFoundException,
   HttpException,
   UnprocessableEntityException,
+  Response,
 } from '@nestjs/common';
 import {
   AzureTableContinuationToken,
@@ -22,8 +23,8 @@ import { plainToClass } from 'class-transformer';
 @Injectable()
 export class RequestService {
   constructor(
-    @InjectRepository(Request)
-    private readonly requestRepository: Repository<Request>,
+    @InjectRepository(RequestEntity)
+    private readonly requestRepository: Repository<RequestEntity>,
     private readonly helperService: HelperService,
   ) {}
 
@@ -94,7 +95,7 @@ export class RequestService {
         url: blobClient.url,
       });
     }
-    const request = Object.assign(new Request(), input);
+    const request = Object.assign(new RequestEntity(), input);
 
     // set the default values..
     request.requested_time = new Date();
@@ -146,7 +147,7 @@ export class RequestService {
 
   async findById(id: string) {
     try {
-      const result = await this.requestRepository.find(id, new Request());
+      const result = await this.requestRepository.find(id, new RequestEntity());
       // defining approvers property - this will not effect the db record it is just for out-dto
       const approvers = [];
       for (let i = 0; i < 4; i++) {
@@ -213,7 +214,8 @@ export class RequestService {
 
   async withDrawRequest(id: string) {
     try {
-      const result = await this.requestRepository.find(id, new Request());
+      console.log(id)
+      const result = await this.requestRepository.find(id, new RequestEntity());
       console.log('result: ', result);
 
       // if (result.approval_status === ApprovalStatus.With_Drawn)
@@ -226,9 +228,11 @@ export class RequestService {
       // one by one...
       request.approval_status = ApprovalStatus.With_Drawn;
 
-      console.log('after update: ', request);
-
-      const temp = await this.requestRepository.update(id, request);
+      // console.log('after update: ', result);
+      const data = new RequestEntity();
+      // Disclaimer: Assign only the properties you are expecting!
+      Object.assign(data, {...request});
+      const temp = await this.requestRepository.update(id, data);
 
       console.log('temp: ', temp);
 
@@ -240,13 +244,13 @@ export class RequestService {
   }
 
   async update(id: string, input: UpdateRequestDto) {
-    const updatedRequest = Object.assign(new Request(), input);
+    const updatedRequest = Object.assign(new RequestEntity(), input);
     return this.requestRepository.update(id, updatedRequest);
   }
 
   async deleteById(id: string) {
     const { isSuccessful, error, statusCode } =
-      await this.requestRepository.delete(id, new Request());
+      await this.requestRepository.delete(id, new RequestEntity());
     if (isSuccessful) return { message: 'Request removed successfully' };
     return { error, statusCode };
   }
