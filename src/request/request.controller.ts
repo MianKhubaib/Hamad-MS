@@ -1,3 +1,4 @@
+import { UpdateRequestManagerDto } from './dto/update-request-manager.dto';
 import { PaginationParams } from './../dto/pagination-params.dto';
 import {
   Body,
@@ -43,6 +44,14 @@ export class RequestController {
   @Get(':id/withdraw')
   withdrawRequest(@Param('id') id: string) {
     return this.requestService.withDrawRequest(id);
+  }
+
+  @Patch(':id/manager')
+  updateRequestManager(
+    @Param('id') id: string,
+    @Body() updateManagerDto: UpdateRequestManagerDto,
+  ) {
+    return this.requestService.updateRequestManager(id, updateManagerDto);
   }
 
   @Post()

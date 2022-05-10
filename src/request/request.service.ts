@@ -1,3 +1,4 @@
+import { UpdateRequestManagerDto } from './dto/update-request-manager.dto';
 import { ViewRequestDto } from './dto/view-request.dot';
 import { HelperService } from './../shared/helper.service';
 import { PaginationParams } from './../dto/pagination-params.dto';
@@ -95,20 +96,15 @@ export class RequestService {
         url: blobClient.url,
       });
     }
-    const request = Object.assign(new RequestEntity(), input);
+    let request = Object.assign(new RequestEntity(), input);
+
+    // expliciting setting dates to null - otherwise causing error
+    request = this.formatRequest(request);
 
     // set the default values..
     request.requested_time = new Date();
     request.is_withdrawn = false;
     request.approval_status = ApprovalStatus.Pending;
-
-    // expliciting setting dates to null - otherwise causing error
-    request.assignments_bui_expectedDate = null;
-    request.delivery_next_demo = null;
-    request.approver_0_date = null;
-    request.approver_1_date = null;
-    request.approver_2_date = null;
-    request.approver_3_date = null;
 
     // iterate on approvers array and store each record to seperate field
     for (let i = 0; i < input.approvers.length; i++) {
@@ -208,6 +204,10 @@ export class RequestService {
       ? request.requested_time
       : null;
 
+    request.request_manager_time = request.request_manager_time
+      ? request.request_manager_time
+      : null;
+
     request.required_by = request.required_by ? request.required_by : null;
     return request;
   }
@@ -235,6 +235,37 @@ export class RequestService {
       return { request: updatedRequest, message: 'request withdrawn success' };
     } catch (error) {
       console.error(`error occured in method: '${this.withDrawRequest.name}'`);
+      throw error;
+    }
+  }
+
+  async updateRequestManager(id: string, input: UpdateRequestManagerDto) {
+    try {
+      const result = await this.requestRepository.find(id, new RequestEntity());
+
+      // explicitely set dates to null if date is not already set
+      const formatedRequest = this.formatRequest(result);
+
+      const updatedRequest = new RequestEntity();
+      Object.assign(updatedRequest, formatedRequest);
+
+      // update following column values
+      updatedRequest.request_manager_id = input.manager_id;
+      updatedRequest.request_manager_time = new Date();
+      updatedRequest.request_manager_details = this.helperService.jsonStringify(
+        {
+          name: input.manager_name,
+          avatar: input.manager_avatar,
+        },
+      );
+
+      await this.requestRepository.update(id, updatedRequest);
+
+      return { message: 'request manager successfully updated!' };
+    } catch (error) {
+      console.error(
+        `error occured in method: '${this.updateRequestManager.name}'`,
+      );
       throw error;
     }
   }

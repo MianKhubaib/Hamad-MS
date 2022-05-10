@@ -132,8 +132,8 @@ export class RequestEntity {
   @EntityString()
   request_manager_details: string;
 
-  @EntityString()
-  request_manager_time: string;
+  @EntityDateTime()
+  request_manager_time: Date;
 
   @EntityString()
   assignments_output_type: string;
