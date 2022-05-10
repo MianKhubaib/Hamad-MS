@@ -1,3 +1,5 @@
+import { SearchRequestDto } from './dto/search-request.dto';
+import { ViewRequestListOutDto } from './dto/view-request-list-out.dto';
 import { UpdateRequestManagerDto } from './dto/update-request-manager.dto';
 import { ViewRequestDto } from './dto/view-request.dot';
 import { HelperService } from './../shared/helper.service';
@@ -120,25 +122,44 @@ export class RequestService {
     return this.requestRepository.create(request);
   }
 
-  async findAll(pagination: PaginationParams) {
-    let continuationToken: AzureTableContinuationToken;
-    if (pagination.continuationToken) {
-      continuationToken = this.helperService.decodeBase64AndParse(
-        pagination.continuationToken,
-      );
-    }
+  async findRequests(search: SearchRequestDto, pagination: PaginationParams) {
+    // let continuationToken: AzureTableContinuationToken;
+    // if (pagination.continuationToken) {
+    //   continuationToken = this.helperService.decodeBase64AndParse(
+    //     pagination.continuationToken,
+    //   );
+    // }
+
+    console.log('search: ', search);
 
     const query = new TableQuery();
-    query.where('Timestamp');
-    const data = await this.requestRepository
-      .top(pagination.size)
-      .findAll(null, continuationToken as AzureTableContinuationToken);
-    return {
-      entries: data.entries,
-      continuationToken: this.helperService.stringifyAndEncodeBase64(
-        data.continuationToken,
-      ),
-    };
+    if (search.submited_by)
+      query.where(`submited_by_userId == '${search.submited_by}'`);
+
+    if (search.approval_status)
+      query.where(`or approval_status == '${search.approval_status}'`);
+
+    if (search.time_before)
+      query.where(`or requested_time >= '${search.time_before}'`);
+
+    console.log('query: ', query);
+
+    const result = await this.requestRepository.findAll(query);
+
+    return plainToClass(ViewRequestListOutDto, result.entries, {
+      excludeExtraneousValues: true,
+    });
+    // .top(pagination.size)
+    // .findAll(null, continuationToken as AzureTableContinuationToken);
+
+    return result;
+
+    // return {
+    //   entries: data.entries,
+    //   continuationToken: this.helperService.stringifyAndEncodeBase64(
+    //     data.continuationToken,
+    //   ),
+    // };
   }
 
   async findById(id: string) {

@@ -1,3 +1,4 @@
+import { SearchRequestDto } from './dto/search-request.dto';
 import { UpdateRequestManagerDto } from './dto/update-request-manager.dto';
 import { PaginationParams } from './../dto/pagination-params.dto';
 import {
@@ -64,7 +65,10 @@ export class RequestController {
   }
 
   @Get()
-  fetchAllRequests(@Query() pagination: PaginationParams) {
-    return this.requestService.findAll(pagination);
+  fetchAllRequests(
+    @Query() searchQuery: SearchRequestDto,
+    @Query() pagination: PaginationParams,
+  ) {
+    return this.requestService.findRequests(searchQuery, pagination);
   }
 }
