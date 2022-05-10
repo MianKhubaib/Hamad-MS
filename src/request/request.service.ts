@@ -133,14 +133,37 @@ export class RequestService {
     console.log('search: ', search);
 
     const query = new TableQuery();
-    if (search.submited_by)
-      query.where(`submited_by_userId == '${search.submited_by}'`);
 
-    if (search.approval_status)
-      query.where(`or approval_status == '${search.approval_status}'`);
+    let added = false;
+    if (search.submited_by) {
+      query.where(
+        `${added ? 'or' : ''} submited_by_userId == '${search.submited_by}'`,
+      );
+      added = true;
+    }
 
-    if (search.time_before)
-      query.where(`or requested_time >= '${search.time_before}'`);
+    if (search.current_approver) {
+      query.where(
+        `${added ? 'or' : ''} current_approverId == '${
+          search.current_approver
+        }'`,
+      );
+      added = true;
+    }
+
+    if (search.approval_status) {
+      query.where(
+        `${added ? 'or' : ''} approval_status == '${search.approval_status}'`,
+      );
+      added = true;
+    }
+
+    if (search.time_before) {
+      query.where(
+        `${added ? 'or' : ''} requested_time >= '${search.time_before}'`,
+      );
+      added = true;
+    }
 
     console.log('query: ', query);
 

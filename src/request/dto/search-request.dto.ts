@@ -20,6 +20,11 @@ export class SearchRequestDto {
   @IsOptional()
   approval_status: string;
 
+  @ApiProperty({ description: 'request current approver' })
+  @IsString()
+  @IsOptional()
+  current_approver: string;
+
   @ApiProperty({ description: 'search before provided time' })
   @IsDateString()
   @IsOptional()
