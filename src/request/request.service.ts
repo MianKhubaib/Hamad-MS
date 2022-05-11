@@ -274,7 +274,11 @@ export class RequestService {
       Object.assign(updatedRequest, formatedRequest);
       await this.requestRepository.update(id, updatedRequest);
 
-      return { request: updatedRequest, message: 'request withdrawn success' };
+      const requestOut = plainToClass(ViewRequestDto, updatedRequest, {
+        excludeExtraneousValues: true,
+      })
+
+      return { request: requestOut, message: 'request withdrawn success' };
     } catch (error) {
       console.error(`error occured in method: '${this.withDrawRequest.name}'`);
       throw error;
@@ -340,10 +344,11 @@ export class RequestService {
     const arrayForm = data.entries;
     const mappeddata = arrayForm.map((item) => ({
       'BI Request Id': item['RowKey'],
+      'Display Request Id': `Req-${String(item.display_id).padStart(3, '0')}`,
       'Requested By': item.submited_by_name,
       'Required Date': item.required_by,
       'Requested On': item.requested_time,
-      'Detail Decription': item.description,
+      'Detail Decription': item.description,  
       Purpose: item.purpose,
       Status: item.status,
     }));
@@ -392,6 +397,8 @@ export class RequestService {
         });
       }
       return {
+        'BI Request Id': request['RowKey'],
+        'Display Request Id': `Req-${String(request.display_id).padStart(3, '0')}`,
         'Submitted by': request.submited_by_name,
         'Submitted On': request.requested_time,
         'Request Title': request.title,
@@ -575,6 +582,8 @@ export class RequestService {
     }
     return {
       'Req.Details': {
+        'BI Request Id': request['RowKey'],
+        'Display Request Id': `Req-${String(request.display_id).padStart(3, '0')}`,
         'Submitted by': request.submited_by_name,
         'Submitted On': request.requested_time,
         'Request Title': request.title,
