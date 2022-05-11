@@ -27,6 +27,13 @@ steps:
     command: run
     arguments: "build"
 
+- task: Npm@0
+  displayName: Build NestJS
+  inputs:
+    cwd: '$(Build.SourcesDirectory)/Hamad-MS-Teams-Plugin'
+    command: run
+    arguments: "start"
+
 - task: CopyFiles@2
   inputs:
     Contents: 'dist/**'
