@@ -35,7 +35,7 @@ steps:
 - task: ArchiveFiles@2
   inputs:
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/dist'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/dist/**'
     replaceExistingArchive: true
   
 - task: PublishBuildArtifacts@1
