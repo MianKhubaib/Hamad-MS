@@ -29,7 +29,9 @@ steps:
 - task: CopyFiles@2
   inputs:
     SourceFolder: '$(build.sourcesdirectory)'
-    Contents: '**'
+    Contents: |
+      **\*.js
+      **\*.json
     TargetFolder: '$(build.artifactstagingdirectory)'
 
 - task: ArchiveFiles@2
