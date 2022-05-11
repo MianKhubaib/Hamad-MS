@@ -1,10 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 
 export class ViewRequestListOutDto {
   @ApiProperty({ description: 'request id' })
   @Expose({ name: 'RowKey' })
   id: string;
+
+  @ApiProperty({ description: 'request id' })
+  @Expose()
+  @Transform(({ obj }) => `Req-${obj.RowKey}`)
+  display_id: string;
 
   @ApiProperty({ description: 'request date' })
   @Expose()

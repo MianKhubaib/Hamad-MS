@@ -42,6 +42,11 @@ export class ViewRequestDto {
   @Expose({ name: 'RowKey' })
   id: string;
 
+  @ApiProperty({ description: 'request id' })
+  @Expose()
+  @Transform(({ obj }) => `Req-${obj.RowKey}`)
+  display_id: string;
+
   @ApiProperty({ description: 'request title' })
   @Expose()
   title: string;
