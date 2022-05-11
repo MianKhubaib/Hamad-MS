@@ -35,14 +35,14 @@ steps:
   inputs:
     Contents: 'dist/**' # Pull the build directory (React)
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
-
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '''$(Build.ArtifactStagingDirectory)/dist'''
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/*'
     includeRootFolder: true
     archiveType: 'zip'
-    archiveFile: 'dist.zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory).zip'
     replaceExistingArchive: true
+
 - task: PublishBuildArtifacts@1
   inputs: 
     PathtoPublish: $(Build.ArtifactStagingDirectory) # dist or build files
