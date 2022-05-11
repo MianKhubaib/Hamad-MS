@@ -35,7 +35,7 @@ steps:
     SourceFolder: '$(System.DefaultWorkingDirectory)'
     Contents: |
       package.json
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    TargetFolder: 'dist/'
 - task: PublishBuildArtifacts@1
   inputs: 
     PathtoPublish: $(Build.ArtifactStagingDirectory) # dist or build files
