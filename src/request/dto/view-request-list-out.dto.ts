@@ -19,6 +19,10 @@ export class ViewRequestListOutDto {
   @Expose()
   title: string;
 
+  @ApiProperty({ description: 'request description' })
+  @Expose()
+  description: string;
+
   @ApiProperty({ description: 'request purpose' })
   @Expose()
   purpose: string;
@@ -28,14 +32,40 @@ export class ViewRequestListOutDto {
   required_by: Date;
 
   @ApiProperty({ description: 'request status' })
+  @Transform(({ value }) => (String(value).startsWith('status') ? null : value))
+  @Expose()
+  status: string;
+
+  @ApiProperty({ description: 'request approval status' })
   @Expose()
   approval_status: string;
 
   @ApiProperty({ description: 'request current approver id' })
   @Expose()
   current_approverId: string;
-  
+
   @ApiProperty({ description: 'request current approver name' })
   @Expose()
   current_approver_name: string;
+
+  @ApiProperty({ description: 'requested by user name' })
+  @Expose({ name: 'submited_by_name' })
+  requested_by: string;
+
+  @ApiProperty({ description: 'requested by user id' })
+  @Expose({ name: 'submited_by_userId' })
+  requested_user_id: string;
+
+  @ApiProperty({ description: 'request manager id' })
+  @Expose({ name: 'request_manager_id' })
+  manager_id: string;
+
+  @ApiProperty({ description: 'request manager details' })
+  @Expose({ name: 'request_manager_details' })
+  @Transform(({ value }) =>
+    String(value).startsWith('request')
+      ? 'Unassigned'
+      : JSON.parse(value)?.name,
+  )
+  manager_name: string;
 }
