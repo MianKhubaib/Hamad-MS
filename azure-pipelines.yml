@@ -15,39 +15,17 @@ steps:
     versionSpec: '16.x'
   displayName: 'Install Node.js'
 
-- task: Npm@1
-  inputs:
-    command: 'install'
-    workingDir: '$(build.sourcesdirectory)'
-
-- task: Npm@0
-  displayName: Build NestJS
-  inputs:
-    cwd: '$(Build.SourcesDirectory)/Hamad-MS-Teams-Plugin'
-    command: run
-    arguments: "build"
-
-- task: Npm@0
-  displayName: Build NestJS
-  inputs:
-    cwd: '$(Build.SourcesDirectory)/Hamad-MS-Teams-Plugin'
-    command: run
-    arguments: "start"
+- script: |
+    npm install
+    npm run build
+  displayName: 'npm install and build'
 
 - task: CopyFiles@2
   inputs:
-    Contents: 'dist/**'
+    Contents: 'dist/**' # Pull the build directory (React)
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
-#- task: ArchiveFiles@2
-#  inputs:
-#    archiveType: 'zip'
-#    archiveFile: '$(Build.ArtifactStagingDirectory)/dist/**'
-#    replaceExistingArchive: true
-  
 - task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'Hamad-Teams-Plugin'
-    publishLocation: 'Container'
-    
+  inputs: 
+    PathtoPublish: $(Build.ArtifactStagingDirectory) # dist or build files
+    ArtifactName: 'Hamad-Teams-Plugin' 
