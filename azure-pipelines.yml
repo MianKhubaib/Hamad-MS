@@ -16,17 +16,11 @@ steps:
   displayName: 'Install Node.js'
 
 - script: |
-    npm install @nestjs/common
-    npm install @nestjs/core
+
     npm install
     npm run build
 
   displayName: 'npm install and build'
-
-- task: CopyFiles@2
-  inputs:
-    Contents: 'dist/**' # Pull the build directory (React)
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 
 - task: CopyFiles@2
@@ -41,7 +35,14 @@ steps:
   inputs:
     Contents: 'dist/**' # Pull the build directory (React)
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '''$(Build.ArtifactStagingDirectory)'''
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
 - task: PublishBuildArtifacts@1
   inputs: 
     PathtoPublish: $(Build.ArtifactStagingDirectory) # dist or build files
