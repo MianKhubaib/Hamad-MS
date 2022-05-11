@@ -29,4 +29,6 @@ steps:
   inputs: 
     PathtoPublish: $(Build.ArtifactStagingDirectory) # dist or build files
     ArtifactName: 'Hamad-Teams-Plugin'
-    
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(System.DefaultWorkingDirectory)'    
