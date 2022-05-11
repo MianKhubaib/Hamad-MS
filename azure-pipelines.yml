@@ -30,7 +30,7 @@ steps:
   inputs:
     SourceFolder: '$(System.DefaultWorkingDirectory)'
     Contents: |
-      package.json
+      .env.example
     TargetFolder: 'dist/'
 
 
