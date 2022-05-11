@@ -1,3 +1,5 @@
+import { SearchRequestDto } from './dto/search-request.dto';
+import { UpdateRequestManagerDto } from './dto/update-request-manager.dto';
 import { PaginationParams } from './../dto/pagination-params.dto';
 import {
   Body,
@@ -97,6 +99,14 @@ export class RequestController {
     return this.requestService.withDrawRequest(id);
   }
 
+  @Patch(':id/manager')
+  updateRequestManager(
+    @Param('id') id: string,
+    @Body() updateManagerDto: UpdateRequestManagerDto,
+  ) {
+    return this.requestService.updateRequestManager(id, updateManagerDto);
+  }
+
   @Post()
   @UseInterceptors(FilesInterceptor('attachments'))
   createNewRequest(
@@ -107,7 +117,10 @@ export class RequestController {
   }
 
   @Get()
-  fetchAllRequests(@Query() pagination: PaginationParams) {
-    return this.requestService.findAll(pagination);
+  fetchAllRequests(
+    @Query() searchQuery: SearchRequestDto,
+    @Query() pagination: PaginationParams,
+  ) {
+    return this.requestService.findRequests(searchQuery, pagination);
   }
 }

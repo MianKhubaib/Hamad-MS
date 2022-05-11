@@ -38,6 +38,15 @@ export class Comment {
 }
 
 export class ViewRequestDto {
+  @ApiProperty({ description: 'request id' })
+  @Expose({ name: 'RowKey' })
+  id: string;
+
+  @ApiProperty({ description: 'request display id' })
+  @Expose()
+  @Transform(({ value }) => `Req-${String(value).padStart(3, '0')}`)
+  display_id: string;
+
   @ApiProperty({ description: 'request title' })
   @Expose()
   title: string;

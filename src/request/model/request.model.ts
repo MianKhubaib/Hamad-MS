@@ -25,6 +25,10 @@ export enum ApprovalStatus {
 @EntityPartitionKey('request')
 @EntityRowKey('biu_request_id')
 export class RequestEntity {
+
+  @EntityString()
+  display_id: string;
+
   @EntityString()
   submited_by_name: string;
 
@@ -132,8 +136,8 @@ export class RequestEntity {
   @EntityString()
   request_manager_details: string;
 
-  @EntityString()
-  request_manager_time: string;
+  @EntityDateTime()
+  request_manager_time: Date;
 
   @EntityString()
   assignments_output_type: string;

@@ -1,3 +1,6 @@
+import { SearchRequestDto } from './dto/search-request.dto';
+import { ViewRequestListOutDto } from './dto/view-request-list-out.dto';
+import { UpdateRequestManagerDto } from './dto/update-request-manager.dto';
 import { ViewRequestDto } from './dto/view-request.dot';
 import { HelperService } from './../shared/helper.service';
 import { PaginationParams } from './../dto/pagination-params.dto';
@@ -30,8 +33,6 @@ export class RequestService {
     private readonly helperService: HelperService,
   ) {}
 
-  lastRequestId = 1;
-
   getBlobClient(imageName: string): BlockBlobClient {
     const blobClientService = BlobServiceClient.fromConnectionString(
       process.env.AZURE_STORAGE_CONNECTION_STRING,
@@ -46,8 +47,19 @@ export class RequestService {
     await blobClient.uploadData(file.buffer);
   }
 
-  generateNewRequestId() {
-    return `Req-${++this.lastRequestId}`;
+  async generateNewRequestId() {
+    // select last top record from database
+    const result = await this.requestRepository.top(1).findAll();
+
+    // calculate back ticking time
+    // pattern-reference: https://docs.microsoft.com/en-us/azure/storage/tables/table-storage-design-patterns#solution-6
+    const maxSafeTime = new Date(8640000000000000).getTime();
+    const newId = String(maxSafeTime - Date.now());
+
+    // if no record found start from begining
+    if (result.entries.length < 1) return { id: newId, display_id: '1' };
+    const lastDisplayId = +result.entries[0].display_id;
+    return { id: newId, display_id: String(lastDisplayId + 1) };
   }
 
   async create(
@@ -73,23 +85,24 @@ export class RequestService {
         url: blobClient.url,
       });
     }
-    const request = Object.assign(new RequestEntity(), input);
+    let request = Object.assign(new RequestEntity(), input);
+
+    // expliciting setting dates to null - otherwise causing error
+    request = this.formatRequest(request);
 
     // set the default values..
     request.requested_time = new Date();
     request.is_withdrawn = false;
     request.approval_status = ApprovalStatus.Pending;
 
-    // expliciting setting dates to null - otherwise causing error
-    request.assignments_bui_expectedDate = null;
-    request.delivery_next_demo = null;
-    request.approver_0_date = null;
-    request.approver_1_date = null;
-    request.approver_2_date = null;
-    request.approver_3_date = null;
-
     // iterate on approvers array and store each record to seperate field
     for (let i = 0; i < input.approvers.length; i++) {
+      // set current approver as the first approver in list
+      if (i === 0) {
+        request['current_approverId'] = input.approvers[i].id;
+        request['current_approver_name'] = input.approvers[i].name;
+      }
+
       request[`approver_${i}`] = input.approvers[i].id;
       request[`approver_${i}_details`] = JSON.stringify(input.approvers[i]);
       request[`approver_${i}_status`] = ApprovalStatus.Pending;
@@ -99,28 +112,75 @@ export class RequestService {
     request.attachments = JSON.stringify(uploadedAttachments);
     console.log(uploadedAttachments);
     console.log(request);
-    return this.requestRepository.create(request);
+
+    // generate new request id
+    const { id, display_id } = await this.generateNewRequestId();
+
+    request.display_id = display_id;
+    return this.requestRepository.create(request, id);
   }
 
-  async findAll(pagination: PaginationParams) {
-    let continuationToken: AzureTableContinuationToken;
-    if (pagination.continuationToken) {
-      continuationToken = this.helperService.decodeBase64AndParse(
-        pagination.continuationToken,
-      );
-    }
+  async findRequests(search: SearchRequestDto, pagination: PaginationParams) {
+    // let continuationToken: AzureTableContinuationToken;
+    // if (pagination.continuationToken) {
+    //   continuationToken = this.helperService.decodeBase64AndParse(
+    //     pagination.continuationToken,
+    //   );
+    // }
+
+    console.log('search: ', search);
 
     const query = new TableQuery();
-    query.where('Timestamp');
-    const data = await this.requestRepository
-      .top(pagination.size)
-      .findAll(null, continuationToken as AzureTableContinuationToken);
-    return {
-      entries: data.entries,
-      continuationToken: this.helperService.stringifyAndEncodeBase64(
-        data.continuationToken,
-      ),
-    };
+
+    let added = false;
+    if (search.submited_by) {
+      query.where(
+        `${added ? 'or' : ''} submited_by_userId == '${search.submited_by}'`,
+      );
+      added = true;
+    }
+
+    if (search.current_approver) {
+      query.where(
+        `${added ? 'or' : ''} current_approverId == '${
+          search.current_approver
+        }'`,
+      );
+      added = true;
+    }
+
+    if (search.approval_status) {
+      query.where(
+        `${added ? 'or' : ''} approval_status == '${search.approval_status}'`,
+      );
+      added = true;
+    }
+
+    if (search.time_before) {
+      query.where(
+        `${added ? 'or' : ''} requested_time >= '${search.time_before}'`,
+      );
+      added = true;
+    }
+
+    console.log('query: ', query);
+
+    const result = await this.requestRepository.findAll(query);
+
+    return plainToClass(ViewRequestListOutDto, result.entries, {
+      excludeExtraneousValues: true,
+    });
+    // .top(pagination.size)
+    // .findAll(null, continuationToken as AzureTableContinuationToken);
+
+    return result;
+
+    // return {
+    //   entries: data.entries,
+    //   continuationToken: this.helperService.stringifyAndEncodeBase64(
+    //     data.continuationToken,
+    //   ),
+    // };
   }
 
   async findById(id: string) {
@@ -186,6 +246,10 @@ export class RequestService {
       ? request.requested_time
       : null;
 
+    request.request_manager_time = request.request_manager_time
+      ? request.request_manager_time
+      : null;
+
     request.required_by = request.required_by ? request.required_by : null;
     return request;
   }
@@ -213,6 +277,37 @@ export class RequestService {
       return { request: updatedRequest, message: 'request withdrawn success' };
     } catch (error) {
       console.error(`error occured in method: '${this.withDrawRequest.name}'`);
+      throw error;
+    }
+  }
+
+  async updateRequestManager(id: string, input: UpdateRequestManagerDto) {
+    try {
+      const result = await this.requestRepository.find(id, new RequestEntity());
+
+      // explicitely set dates to null if date is not already set
+      const formatedRequest = this.formatRequest(result);
+
+      const updatedRequest = new RequestEntity();
+      Object.assign(updatedRequest, formatedRequest);
+
+      // update following column values
+      updatedRequest.request_manager_id = input.manager_id;
+      updatedRequest.request_manager_time = new Date();
+      updatedRequest.request_manager_details = this.helperService.jsonStringify(
+        {
+          name: input.manager_name,
+          avatar: input.manager_avatar,
+        },
+      );
+
+      await this.requestRepository.update(id, updatedRequest);
+
+      return { message: 'request manager successfully updated!' };
+    } catch (error) {
+      console.error(
+        `error occured in method: '${this.updateRequestManager.name}'`,
+      );
       throw error;
     }
   }
