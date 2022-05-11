@@ -12,7 +12,7 @@ pool:
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '10.x'
+    versionSpec: '16.x'
   displayName: 'Install Node.js'
 
 - task: Npm@1
@@ -20,25 +20,23 @@ steps:
     command: 'install'
     workingDir: '$(build.sourcesdirectory)'
 
-- task: Npm@1
+- task: Npm@0
+  displayName: Build NestJS
   inputs:
-    command: 'custom'
-    workingDir: '$(build.sourcesdirectory)'
-    customCommand: 'run build'
+    cwd: '$(Build.SourcesDirectory)/Hamad-MS-Teams-Plugin'
+    command: run
+    arguments: "build"
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(build.sourcesdirectory)'
-    Contents: '**'
-    TargetFolder: '$(build.artifactstagingdirectory)'
+    Contents: 'dist/**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)'
-    includeRootFolder: true
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-    replaceExistingArchive: true
+#- task: ArchiveFiles@2
+#  inputs:
+#    archiveType: 'zip'
+#    archiveFile: '$(Build.ArtifactStagingDirectory)/dist/**'
+#    replaceExistingArchive: true
   
 - task: PublishBuildArtifacts@1
   inputs:
