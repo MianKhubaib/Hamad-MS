@@ -38,10 +38,10 @@ steps:
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '''$(Build.ArtifactStagingDirectory)'''
+    rootFolderOrFile: '''$(Build.ArtifactStagingDirectory)/dist'''
     includeRootFolder: true
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    archiveFile: 'dist.zip'
     replaceExistingArchive: true
 - task: PublishBuildArtifacts@1
   inputs: 
