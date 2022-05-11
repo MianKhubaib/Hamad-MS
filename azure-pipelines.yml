@@ -20,19 +20,17 @@ steps:
     command: 'install'
     workingDir: '$(build.sourcesdirectory)'
 
-- task: Npm@1
+- task: Npm@0
+  displayName: Build NestJS
   inputs:
-    command: 'custom'
-    workingDir: '$(build.sourcesdirectory)'
-    customCommand: 'run build'
+    cwd: '$(Build.SourcesDirectory)/Hamad-MS-Teams-Plugin'
+    command: run
+    arguments: "build"
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(build.sourcesdirectory)'
-    Contents: |
-      **\*.js
-      **\*.json
-    TargetFolder: '$(build.artifactstagingdirectory)'
+    Contents: 'dist/**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: ArchiveFiles@2
   inputs:
