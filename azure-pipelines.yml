@@ -28,7 +28,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(System.SourcesDirectory)'
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
     Contents: |
       .env
     TargetFolder: 'dist/'
