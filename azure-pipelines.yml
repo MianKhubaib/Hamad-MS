@@ -32,11 +32,11 @@ steps:
     Contents: 'dist/**'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
-- task: ArchiveFiles@2
-  inputs:
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/dist/**'
-    replaceExistingArchive: true
+#- task: ArchiveFiles@2
+#  inputs:
+#    archiveType: 'zip'
+#    archiveFile: '$(Build.ArtifactStagingDirectory)/dist/**'
+#    replaceExistingArchive: true
   
 - task: PublishBuildArtifacts@1
   inputs:
