@@ -31,7 +31,6 @@ export class RequestService {
     private readonly helperService: HelperService,
   ) {}
 
-  lastRequestId = 1;
   azureConnection = 'YourConnection';
   containerName = 'hamad-ms';
   sleep(ms) {
@@ -54,8 +53,19 @@ export class RequestService {
     await blobClient.uploadData(file.buffer);
   }
 
-  generateNewRequestId() {
-    return `Req-${++this.lastRequestId}`;
+  async generateNewRequestId() {
+    // select last top record from database
+    const result = await this.requestRepository.top(1).findAll();
+
+    // calculate back ticking time
+    // pattern-reference: https://docs.microsoft.com/en-us/azure/storage/tables/table-storage-design-patterns#solution-6
+    const maxSafeTime = new Date(8640000000000000).getTime();
+    const newId = String(maxSafeTime - Date.now());
+
+    // if no record found start from begining
+    if (result.entries.length < 1) return { id: newId, display_id: '1' };
+    const lastDisplayId = +result.entries[0].display_id;
+    return { id: newId, display_id: String(lastDisplayId + 1) };
   }
 
   async create(
@@ -110,7 +120,6 @@ export class RequestService {
 
     // iterate on approvers array and store each record to seperate field
     for (let i = 0; i < input.approvers.length; i++) {
-
       // set current approver as the first approver in list
       if (i === 0) {
         request['current_approverId'] = input.approvers[i].id;
@@ -126,7 +135,12 @@ export class RequestService {
     request.attachments = JSON.stringify(uploadedAttachments);
     console.log(uploadedAttachments);
     console.log(request);
-    return this.requestRepository.create(request);
+
+    // generate new request id
+    const { id, display_id } = await this.generateNewRequestId();
+
+    request.display_id = display_id;
+    return this.requestRepository.create(request, id);
   }
 
   async findRequests(search: SearchRequestDto, pagination: PaginationParams) {

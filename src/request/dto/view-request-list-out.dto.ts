@@ -6,9 +6,9 @@ export class ViewRequestListOutDto {
   @Expose({ name: 'RowKey' })
   id: string;
 
-  @ApiProperty({ description: 'request id' })
+  @ApiProperty({ description: 'request display id' })
   @Expose()
-  @Transform(({ obj }) => `Req-${obj.RowKey}`)
+  @Transform(({ value }) => `Req-${String(value).padStart(3, '0')}`)
   display_id: string;
 
   @ApiProperty({ description: 'request date' })
