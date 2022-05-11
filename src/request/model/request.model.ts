@@ -191,4 +191,7 @@ export class RequestEntity {
 
   @EntityString()
   progress_notes: string;
+
+  @EntityString()
+  progress_notes_attachments: string;
 }

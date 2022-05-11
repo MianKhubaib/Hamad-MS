@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import {
   AzureTableStorageResponse,
@@ -68,7 +69,24 @@ export class UserService {
     // return await user1['data'];
   }
   async update(id: string, input: UpdateUserDTO) {
-    const updatedRequest = Object.assign(new User(), input);
-    return this.userRepository.update(id, updatedRequest);
+    try {
+      const result = await this.userRepository.find(id, new User());
+      // explicitely set dates to null if date is not already set
+
+      result.persona = input.persona;
+
+      const updatedRequest = new User();
+      // Disclaimer: Assign only the properties you are expecting!
+      Object.assign(updatedRequest, result);
+      await this.userRepository.update(id, updatedRequest);
+
+      return {
+        request: updatedRequest,
+        message: 'persona updated successfully',
+      };
+    } catch (error) {
+      console.error(`error occured in updated user method`);
+      throw error;
+    }
   }
 }

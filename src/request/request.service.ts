@@ -11,7 +11,9 @@ import {
   HttpException,
   UnprocessableEntityException,
   Response,
+  BadRequestException,
 } from '@nestjs/common';
+
 import {
   AzureTableContinuationToken,
   InjectRepository,
@@ -19,7 +21,7 @@ import {
 } from '@nestjs/azure-database';
 import { TableQuery } from 'azure-storage';
 import { plainToClass } from 'class-transformer';
-
+import { isNotEmpty } from 'class-validator';
 @Injectable()
 export class RequestService {
   constructor(
@@ -29,19 +31,12 @@ export class RequestService {
   ) {}
 
   lastRequestId = 1;
-  azureConnection = 'YourConnection';
-  containerName = 'hamad-ms';
-  sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
 
   getBlobClient(imageName: string): BlockBlobClient {
     const blobClientService = BlobServiceClient.fromConnectionString(
       process.env.AZURE_STORAGE_CONNECTION_STRING,
     );
-    const containerClient = blobClientService.getContainerClient(
-      this.containerName,
-    );
+    const containerClient = blobClientService.getContainerClient('hamad-ms');
     const blobClient = containerClient.getBlockBlobClient(imageName);
     return blobClient;
   }
@@ -63,23 +58,6 @@ export class RequestService {
     // try to upload the attachments to azure blob storage
     // store following properties in db: filename, size, type, url
     // Do upload file one by one or in bulk
-
-    // const uploadedAttachments = async () =>
-    //   Promise.all(
-    //     attachments.map(async (item) => {
-    //       const blobClient = this.getBlobClient(
-    //         Date.now() + '_' + item.originalname,
-    //       );
-    //       await blobClient.uploadData(item.buffer);
-    //       console.log(blobClient.url);
-    //       return {
-    //         name: item.originalname,
-    //         type: item.mimetype,
-    //         size: item.size,
-    //         url: blobClient.url,
-    //       };
-    //     }),
-    //   );
     const uploadedAttachments = [];
     for (let item of attachments) {
       const blobClient = this.getBlobClient(
@@ -249,5 +227,333 @@ export class RequestService {
       await this.requestRepository.delete(id, new RequestEntity());
     if (isSuccessful) return { message: 'Request removed successfully' };
     return { error, statusCode };
+  }
+
+  async requestManagementlist(managerId, status: string) {
+    const query = new TableQuery();
+    console.log(status);
+    const data = isNotEmpty(status)
+      ? await this.requestRepository.findAll(
+          query.where(
+            `status == '${status}' and request_manager_id == '${managerId}'`,
+          ),
+        )
+      : await this.requestRepository.findAll(
+          query.where(`request_manager_id == '${managerId}'`),
+        );
+
+    const arrayForm = data.entries;
+    const mappeddata = arrayForm.map((item) => ({
+      'BI Request Id': item['RowKey'],
+      'Requested By': item.submited_by_name,
+      'Required Date': item.required_by,
+      'Requested On': item.requested_time,
+      'Detail Decription': item.description,
+      Purpose: item.purpose,
+      Status: item.status,
+    }));
+    return mappeddata;
+  }
+
+  statusChecker(status, details) {
+    const name = JSON.parse(details).name;
+    if (status === 'approved') return `Approved By ${name}`;
+    if (status === 'pending') return `Approval Pending from ${name}`;
+    if (status === 'rejected') return `Rejected By ${name}`;
+  }
+
+  numberOfApprover(a0, a1, a2, a3) {
+    let count = 0;
+    if (a0 !== 'approver_0') count++;
+    if (a1 !== 'approver_1') count++;
+    if (a2 !== 'approver_2') count++;
+    if (a3 !== 'approver_3') count++;
+    return count;
+  }
+
+  async requestDetails(id: string) {
+    try {
+      const request = await this.requestRepository.find(
+        id,
+        new RequestEntity(),
+      );
+      let noOfApprover = this.numberOfApprover(
+        request.approver_0,
+        request.approver_1,
+        request.approver_2,
+        request.approver_3,
+      );
+      const approvers = [];
+      const approvalChain = [];
+      for (let i = 0; i < noOfApprover; i++) {
+        approvers.push(JSON.parse(request[`approver_${i}_details`]).name);
+        approvalChain.push({
+          id: request[`approver_${i}`],
+          Status: this.statusChecker(
+            request[`approver_${i}_status`],
+            request[`approver_${i}_details`],
+          ),
+          Date: request[`approver_${i}_date`] || '--',
+        });
+      }
+      return {
+        'Submitted by': request.submited_by_name,
+        'Submitted On': request.requested_time,
+        'Request Title': request.title,
+        'Research Project': request.is_research_based,
+        'Expected by': request.required_by,
+        Approvers: approvers,
+        'Approval Chain': approvalChain,
+        Attachments:
+          request.attachments === 'attachments'
+            ? request.attachments
+            : JSON.parse(request.attachments),
+        Comments:
+          request.comments === 'comments'
+            ? request.comments
+            : JSON.parse(request.comments),
+      };
+    } catch (err) {
+      throw new BadRequestException(err.message, 'Request Not Found');
+    }
+  }
+
+  async updateAssignmentData(id: string, requestData) {
+    try {
+      const request1 = await this.requestRepository.find(
+        id,
+        new RequestEntity(),
+      );
+      const request = new RequestEntity();
+      Object.assign(request, request1);
+      Object.assign(request, requestData);
+      const formatedRequest = this.formatRequest(request);
+      // expliciting setting dates to null - otherwise causing error
+
+      await this.requestRepository.update(id, formatedRequest);
+      return { request: formatedRequest, message: 'Request Have been Updated' };
+    } catch (err) {
+      throw new BadRequestException(err.message, 'Request Not Found');
+    }
+  }
+
+  async updateDeliveryData(id: string, requestData) {
+    try {
+      const request1 = await this.requestRepository.find(
+        id,
+        new RequestEntity(),
+      );
+      const request = new RequestEntity();
+      Object.assign(request, request1);
+      Object.assign(request, requestData);
+      const formatedRequest = this.formatRequest(request);
+      // expliciting setting dates to null - otherwise causing error
+
+      await this.requestRepository.update(id, formatedRequest);
+      return { request: formatedRequest, message: 'Request Have been Updated' };
+    } catch (err) {
+      throw new BadRequestException(err.message, 'Request Not Found');
+    }
+  }
+
+  async updateNotesAttachments(
+    id: string,
+    attachments: Array<Express.Multer.File>,
+  ) {
+    try {
+      const result = await this.requestRepository.find(id, new RequestEntity());
+
+      // throw error if request already in with-drawn state
+      const uploadedAttachments = [];
+
+      if (!attachments || attachments.length === 0) {
+        throw new BadRequestException('Please attach file');
+      }
+
+      for (let item of attachments) {
+        const blobClient = this.getBlobClient(
+          Date.now() + '_' + item.originalname,
+        );
+        await blobClient.uploadData(item.buffer);
+        await blobClient.setHTTPHeaders({ blobContentType: item.mimetype });
+        console.log(blobClient.url);
+        uploadedAttachments.push({
+          name: item.originalname,
+          type: item.mimetype,
+          size: item.size,
+          url: blobClient.url,
+        });
+      }
+
+      // explicitely set dates to null if date is not already set
+      const formatedRequest = this.formatRequest(result);
+
+      const oldAttachments =
+        formatedRequest.progress_notes_attachments ===
+        'progress_notes_attachments'
+          ? []
+          : JSON.parse(formatedRequest.progress_notes_attachments);
+
+      oldAttachments.push(uploadedAttachments);
+      console.log(oldAttachments);
+      formatedRequest.progress_notes_attachments =
+        JSON.stringify(oldAttachments);
+      const updatedRequest = new RequestEntity();
+      // Disclaimer: Assign only the properties you are expecting!
+      Object.assign(updatedRequest, formatedRequest);
+      await this.requestRepository.update(id, updatedRequest);
+
+      return { request: updatedRequest, message: 'Notes Attachments Updated' };
+    } catch (error) {
+      console.error(`error occured in update ProgressNotesAttachments`);
+      throw error;
+    }
+  }
+
+  async updateNotes(id: string, body) {
+    try {
+      const result = await this.requestRepository.find(id, new RequestEntity());
+      const formatedRequest = this.formatRequest(result);
+
+      const oldNotes =
+        formatedRequest.progress_notes === 'progress_notes'
+          ? []
+          : JSON.parse(formatedRequest.progress_notes);
+
+      oldNotes.push({ id: body.id, name: body.name, message: body.message });
+      console.log(oldNotes);
+      formatedRequest.progress_notes = JSON.stringify(oldNotes);
+      const updatedRequest = new RequestEntity();
+      // Disclaimer: Assign only the properties you are expecting!
+      Object.assign(updatedRequest, formatedRequest);
+      await this.requestRepository.update(id, updatedRequest);
+
+      return { request: updatedRequest, message: 'Notes Attachments Updated' };
+    } catch (error) {
+      console.error(`error occured in update ProgressNotes method`);
+      throw error;
+    }
+  }
+
+  async updateStatus(id: string, body) {
+    try {
+      const result = await this.requestRepository.find(id, new RequestEntity());
+
+      // if (result.status === body.status)
+      //   throw new BadRequestException(
+      //     `Request already in '${body.status}' state`,
+      //   );
+      // explicitely set dates to null if date is not already set
+      const formatedRequest = this.formatRequest(result);
+
+      formatedRequest.status = body.status;
+      console.log(formatedRequest);
+
+      const updatedRequest = new RequestEntity();
+      // Disclaimer: Assign only the properties you are expecting!
+      Object.assign(updatedRequest, formatedRequest);
+      await this.requestRepository.update(id, updatedRequest);
+
+      return {
+        request: updatedRequest,
+        message: 'request status updated successfully',
+      };
+    } catch (error) {
+      console.error(`error occured in update state method`);
+      throw new Error(error.message);
+    }
+  }
+
+  async trackRequest(id: string) {
+    // try {
+    const request = await this.requestRepository.find(id, new RequestEntity());
+    let noOfApprover = this.numberOfApprover(
+      request.approver_0,
+      request.approver_1,
+      request.approver_2,
+      request.approver_3,
+    );
+
+    const approvers = [];
+    for (let i = 0; i < noOfApprover; i++) {
+      approvers.push(JSON.parse(request[`approver_${i}_details`]).name);
+    }
+    return {
+      'Req.Details': {
+        'Submitted by': request.submited_by_name,
+        'Submitted On': request.requested_time,
+        'Request Title': request.title,
+        Purpose: request.purpose,
+        'Detailed Description': request.description,
+        Frequency: request.frequency,
+        'Intended Audience': request.intended_audiance,
+        'Research Project': request.is_research_based,
+        'Expected by': request.required_by,
+        Approvers: approvers,
+      },
+      Attachments: {
+        Files:
+          request.attachments === 'attachments'
+            ? request.attachments
+            : JSON.parse(request.attachments),
+        Comments:
+          request.comments === 'comments'
+            ? request.comments
+            : JSON.parse(request.comments),
+      },
+      Assignments: {
+        'Output type': request.assignments_output_type,
+        Priority: request.assignments_priority,
+        Domain: request.assignments_domain,
+        'Short Output Name': request.assignments_short_output_name,
+        'Full Output Name': request.assignments_full_output_name,
+        'BUI Expected Date': request.required_by,
+        TAT: request.assignments_tat,
+        'Assigned Business Analyst': request.assigned_business_analyst_name,
+        'Assigned Technical Analyst': request.assigned_technical_analyst_name,
+      },
+      Delivery: {
+        'BA Assessment': request.delivery_ba_assessment,
+        'Technical Assessment': request.delivery_technical_assessment,
+        'Assigned Quality Assurance Lead': request.quality_assurance_lead_name,
+        'Report Sample': request.delivery_report_sample,
+        'Next Demo to Requestor': request.delivery_next_demo,
+        'UAT Sign off': request.uat_sign_off,
+      },
+      "Who's who": {
+        Request: request.submited_by_name,
+        'Request Manager':
+          request.request_manager_details === 'request_manager_details'
+            ? 'Not Assigned'
+            : request.request_manager_details,
+        'Business Analyst':
+          request.assigned_business_analyst_name ===
+          'assigned_business_analyst_name'
+            ? 'Not Assigned'
+            : request.assigned_business_analyst_name,
+        'Technical Analyst':
+          request.assigned_technical_analyst_name ===
+          'assigned_technical_analyst_name'
+            ? 'Not Assigned'
+            : request.assigned_technical_analyst_name,
+        'QA Lead':
+          request.quality_assurance_lead_name === 'quality_assurance_lead_name'
+            ? 'Not Assigned'
+            : request.quality_assurance_lead_name,
+      },
+      Notes: {
+        Attachments:
+          request.progress_notes_attachments === 'progress_notes_attachments'
+            ? request.progress_notes_attachments
+            : JSON.parse(request.progress_notes_attachments),
+        'Progress Notes':
+          request.progress_notes === 'progress_notes'
+            ? request.progress_notes
+            : JSON.parse(request.progress_notes),
+      },
+    };
+    // } catch (err) {
+    //   throw new BadRequestException(err.message, 'Request Not Found');
+    // }
   }
 }
