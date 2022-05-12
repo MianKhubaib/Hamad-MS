@@ -10,6 +10,7 @@ import { APP_INTERCEPTOR, RouterModule } from '@nestjs/core';
 import { NotificationModule } from './notification/notification.module';
 import { UtilsModule } from './utils/utils.module';
 import { AuthModule } from './auth/auth.module';
+<<<<<<< HEAD
 import { DatabaseModule } from './database/database.module';
 
 @Module({
@@ -17,6 +18,15 @@ import { DatabaseModule } from './database/database.module';
     ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
     BuiRequestModule,
+=======
+// import { AzureTableStorageModule } from '@nestjs/azure-database';
+import { SharedModule } from './shared/shared.module';
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    UserModule,
+    RequestModule,
+>>>>>>> staging
     DeliveryModule,
     AdminModule,
     NotificationModule,
