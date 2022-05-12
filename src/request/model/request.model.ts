@@ -7,12 +7,17 @@ import {
 } from '@nestjs/azure-database';
 
 export enum Status {
-  Pending_Specification = 'pending-specification',
-  In_Development = 'in-development',
-  In_Qa = 'in-qa',
-  User_Acceptance = 'user-acceptance',
-  Waiting_For_Others = 'waiting-for-others',
-  Completed = 'completed',
+  New = 'New',
+  Pending_Specification = 'Pending specifications',
+  Requirement_Analysis = 'Requirement analysis complete',
+  TA_Assigned = 'TA assigned',
+  In_Development = 'In development',
+  In_Qa = 'In quality assurance',
+  Approved = 'Approved',
+  End_User_validation = 'End-user validation',
+  Cancelled = 'Cancelled',
+  On_Hold = 'On hold',
+  Complete = 'complete',
 }
 
 export enum ApprovalStatus {
@@ -25,7 +30,6 @@ export enum ApprovalStatus {
 @EntityPartitionKey('request')
 @EntityRowKey('biu_request_id')
 export class RequestEntity {
-
   @EntityString()
   display_id: string;
 
@@ -140,25 +144,19 @@ export class RequestEntity {
   request_manager_time: Date;
 
   @EntityString()
+  assignments_complexity: string;
+
+  @EntityString()
+  assignments_responsible_team: string;
+
+  @EntityString()
   assignments_output_type: string;
 
   @EntityString()
   assignments_priority: string;
 
-  @EntityString()
-  assignments_domain: string;
-
-  @EntityString()
-  assignments_short_output_name: string;
-
-  @EntityString()
-  assignments_full_output_name: string;
-
   @EntityDateTime()
   assignments_bui_expectedDate: Date;
-
-  @EntityString()
-  assignments_tat: string;
 
   @EntityString()
   assigned_business_analystId: string;
@@ -173,10 +171,27 @@ export class RequestEntity {
   assigned_technical_analyst_name: string;
 
   @EntityString()
-  delivery_ba_assessment: string;
+  delivery_domain: string;
+  //auto-generated
+  @EntityString()
+  delivery_tat: string;
+  //auto-generated
+  @EntityString()
+  delivery_tot: string;
 
   @EntityString()
-  delivery_technical_assessment: string;
+  delivery_short_output_name: string;
+
+  //auto-generated
+  @EntityDateTime()
+  delivery_bui_completedDate: Date;
+
+  //auto-generated
+  @EntityString()
+  delivery_full_output_name: string;
+
+  @EntityString()
+  delivery_completed_request_link: string;
 
   @EntityString()
   quality_assurance_lead_id: string;
@@ -198,4 +213,10 @@ export class RequestEntity {
 
   @EntityString()
   progress_notes_attachments: string;
+
+  @EntityString()
+  irb_number: string;
+
+  @EntityString()
+  requesting_facility: string;
 }

@@ -55,11 +55,14 @@ export class RequestService {
     // pattern-reference: https://docs.microsoft.com/en-us/azure/storage/tables/table-storage-design-patterns#solution-6
     const maxSafeTime = new Date(8640000000000000).getTime();
     const newId = String(maxSafeTime - Date.now());
-
+    const year = new Date().getFullYear().toString().slice(-2);
     // if no record found start from begining
-    if (result.entries.length < 1) return { id: newId, display_id: '1' };
-    const lastDisplayId = +result.entries[0].display_id;
-    return { id: newId, display_id: String(lastDisplayId + 1) };
+    if (result.entries.length < 1)
+      return { id: newId, display_id: `${year}-1` };
+    const lastDisplayId = +result.entries[0].display_id.split('-')[1];
+    let finalDisplayId = String(lastDisplayId + 1);
+    finalDisplayId = `${year}-${finalDisplayId}`;
+    return { id: newId, display_id: finalDisplayId };
   }
 
   async create(
@@ -110,6 +113,7 @@ export class RequestService {
     }
 
     request.attachments = JSON.stringify(uploadedAttachments);
+    request.status = Status.New;
     console.log(uploadedAttachments);
     console.log(request);
 
@@ -250,6 +254,10 @@ export class RequestService {
       ? request.request_manager_time
       : null;
 
+    request.delivery_bui_completedDate = request.delivery_bui_completedDate
+      ? request.delivery_bui_completedDate
+      : null;
+
     request.required_by = request.required_by ? request.required_by : null;
     return request;
   }
@@ -276,7 +284,7 @@ export class RequestService {
 
       const requestOut = plainToClass(ViewRequestDto, updatedRequest, {
         excludeExtraneousValues: true,
-      })
+      });
 
       return { request: requestOut, message: 'request withdrawn success' };
     } catch (error) {
@@ -348,7 +356,7 @@ export class RequestService {
       'Requested By': item.submited_by_name,
       'Required Date': item.required_by,
       'Requested On': item.requested_time,
-      'Detail Decription': item.description,  
+      'Detail Decription': item.description,
       Purpose: item.purpose,
       Status: item.status,
     }));
@@ -398,7 +406,10 @@ export class RequestService {
       }
       return {
         'BI Request Id': request['RowKey'],
-        'Display Request Id': `Req-${String(request.display_id).padStart(3, '0')}`,
+        'Display Request Id': `Req-${String(request.display_id).padStart(
+          3,
+          '0',
+        )}`,
         'Submitted by': request.submited_by_name,
         'Submitted On': request.requested_time,
         'Request Title': request.title,
@@ -445,7 +456,11 @@ export class RequestService {
         id,
         new RequestEntity(),
       );
-      const request = new RequestEntity();
+      let request = new RequestEntity();
+      request1.delivery_full_output_name =
+        request1.delivery_short_output_name === 'delivery_short-output_name'
+          ? request1.delivery_full_output_name
+          : `${request1.delivery_domain}${request1.delivery_short_output_name}-${request1.display_id}`;
       Object.assign(request, request1);
       Object.assign(request, requestData);
       const formatedRequest = this.formatRequest(request);
@@ -550,6 +565,33 @@ export class RequestService {
 
       formatedRequest.status = body.status;
       console.log(formatedRequest);
+      if (body.status === Status.Complete) {
+        formatedRequest.delivery_bui_completedDate = new Date();
+
+        // both values should be defined but not null
+        console.log('date_a: ', formatedRequest.assignments_bui_expectedDate);
+        console.log('date_b: ', formatedRequest.delivery_bui_completedDate);
+        if (
+          formatedRequest.assignments_bui_expectedDate != null ||
+          formatedRequest.assignments_bui_expectedDate !=
+            'assignments_bui_expectedDate' ||
+          formatedRequest.delivery_bui_completedDate != null ||
+          formatedRequest.delivery_bui_completedDate !=
+            'delivery_bui_completedDate'
+        ) {
+          formatedRequest.delivery_tat = `${Math.ceil(
+            (formatedRequest.delivery_bui_completedDate -
+              formatedRequest.assignments_bui_expectedDate) /
+              86400000,
+          )} days`;
+        }
+
+        formatedRequest.delivery_tot = `${Math.ceil(
+          (formatedRequest.delivery_bui_completedDate -
+            formatedRequest.requested_time) /
+            86400000,
+        )} days`;
+      }
 
       const updatedRequest = new RequestEntity();
       // Disclaimer: Assign only the properties you are expecting!
@@ -583,7 +625,10 @@ export class RequestService {
     return {
       'Req.Details': {
         'BI Request Id': request['RowKey'],
-        'Display Request Id': `Req-${String(request.display_id).padStart(3, '0')}`,
+        'Display Request Id': `Req-${String(request.display_id).padStart(
+          3,
+          '0',
+        )}`,
         'Submitted by': request.submited_by_name,
         'Submitted On': request.requested_time,
         'Request Title': request.title,
@@ -596,7 +641,7 @@ export class RequestService {
         Approvers: approvers,
       },
       Attachments: {
-        Files:
+        Documents:
           request.attachments === 'attachments'
             ? request.attachments
             : JSON.parse(request.attachments),
@@ -608,21 +653,22 @@ export class RequestService {
       Assignments: {
         'Output type': request.assignments_output_type,
         Priority: request.assignments_priority,
-        Domain: request.assignments_domain,
-        'Short Output Name': request.assignments_short_output_name,
-        'Full Output Name': request.assignments_full_output_name,
         'BUI Expected Date': request.required_by,
-        TAT: request.assignments_tat,
         'Assigned Business Analyst': request.assigned_business_analyst_name,
         'Assigned Technical Analyst': request.assigned_technical_analyst_name,
+        'Assignment Responsible Team': request.assignments_responsible_team,
       },
       Delivery: {
-        'BA Assessment': request.delivery_ba_assessment,
-        'Technical Assessment': request.delivery_technical_assessment,
         'Assigned Quality Assurance Lead': request.quality_assurance_lead_name,
-        'Report Sample': request.delivery_report_sample,
-        'Next Demo to Requestor': request.delivery_next_demo,
-        'UAT Sign off': request.uat_sign_off,
+        Domain: request.delivery_domain,
+        'Short Output Name': request.delivery_short_output_name,
+        'Full Output Name': request.delivery_full_output_name,
+        'Completed Request Link': request.delivery_completed_request_link,
+        // 'Report Sample': request.delivery_report_sample,
+        // 'Next Demo to Requestor': request.delivery_next_demo,
+        // 'UAT Sign off': request.uat_sign_off,
+        'Turnaround Time': request.delivery_tat,
+        'Turnover Time': request.delivery_tot,
       },
       "Who's who": {
         Request: request.submited_by_name,
