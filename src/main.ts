@@ -4,7 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import { ValidationPipe } from '@nestjs/common';
-import { AllExceptionsFilter } from './filters/exception.filter';
+// import { AllExceptionsFilter } from './filters/exception.filter';
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -20,7 +20,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));
   const { httpAdapter } = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
+  // app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
   // app.useGlobalFilters(new HttpExceptionFilter());
 
   const config = new DocumentBuilder()
